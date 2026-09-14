@@ -1,0 +1,2321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gig Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15171B;
+    --panel:#1D2025;
+    --panel-2:#22262C;
+    --hair:#33383F;
+    --paper:#F1EFE9;
+    --paper-dim:#A9ACAF;
+    --paper-faint:#6C7075;
+    --accent:#E0A94A;
+    --good:#5FA777;
+    --ok:#E0A94A;
+    --bad:#D9645A;
+    --radius:10px;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Space Grotesk',system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:18px 14px 40px;
+  }
+  .app{ width:100%; max-width:430px; }
+
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin:6px 4px 16px;
+  }
+  header h1{ font-size:20px; font-weight:700; margin:0; letter-spacing:0.01em; }
+  header .tag{ font-size:12px; color:var(--paper-dim); }
+
+  /* ---------- Decision card ---------- */
+  .decision-card{
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:var(--radius);
+    padding:20px 18px 18px;
+    margin-bottom:14px;
+  }
+
+  .decision-banner{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 16px;
+    border-radius:9px;
+    margin-bottom:8px;
+  }
+  .decision-banner .emoji{ font-size:24px; line-height:1; }
+  .decision-banner .text{ font-size:21px; font-weight:700; letter-spacing:0.01em; }
+  .decision-banner.pending{ background:rgba(169,172,175,0.08); border:1px solid var(--hair); }
+  .decision-banner.pending .text{ color:var(--paper-dim); }
+  .decision-banner.setup{ background:rgba(224,169,74,0.10); border:1px solid rgba(224,169,74,0.30); }
+  .decision-banner.setup .text{ color:var(--ok); }
+  .decision-banner.take{ background:rgba(95,167,119,0.14); border:1px solid rgba(95,167,119,0.40); }
+  .decision-banner.take .text{ color:var(--good); }
+  .decision-banner.maybe{ background:rgba(224,169,74,0.14); border:1px solid rgba(224,169,74,0.40); }
+  .decision-banner.maybe .text{ color:var(--ok); }
+  .decision-banner.skip{ background:rgba(217,100,90,0.14); border:1px solid rgba(217,100,90,0.40); }
+  .decision-banner.skip .text{ color:var(--bad); }
+
+  .decision-sub{
+    font-size:13.5px;
+    color:var(--paper-dim);
+    padding:0 2px;
+    margin-bottom:18px;
+    line-height:1.4;
+  }
+  .decision-sub.loss{ color:var(--bad); font-weight:500; }
+
+  .numbers-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px 10px;
+    margin-bottom:4px;
+  }
+  .num-item .k{ font-size:11.5px; color:var(--paper-dim); margin-bottom:3px; }
+  .num-item .v{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:19px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+  }
+  .num-item .v.dim{ color:var(--paper-faint); font-weight:500; }
+  .num-item .v.neg{ color:var(--bad); }
+
+  .hourly-row{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid var(--hair);
+  }
+  .hourly-row .k{ font-size:11.5px; color:var(--paper-dim); margin-bottom:3px; }
+  .hourly-row .v{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:19px;
+    font-weight:600;
+  }
+
+  .min-payout{
+    margin-top:16px;
+    padding:12px 14px;
+    background:var(--panel-2);
+    border:1px solid var(--hair);
+    border-left:3px solid var(--accent);
+    border-radius:8px;
+    font-size:13px;
+    line-height:1.45;
+    color:var(--paper);
+  }
+  .min-payout.muted{ border-left-color:var(--hair); color:var(--paper-dim); }
+  .min-payout b{ font-family:'IBM Plex Mono',monospace; font-weight:600; }
+
+  /* ---------- Secondary gauge ---------- */
+  .gauge-wrap{ margin-top:18px; }
+  .gauge{
+    position:relative;
+    height:6px;
+    border-radius:4px;
+    display:flex;
+    opacity:0.55;
+    transition:opacity .2s ease;
+  }
+  .gauge.active{ opacity:1; }
+  .gauge .seg{ height:100%; }
+  .gauge .seg.bad{ background:var(--bad); border-radius:4px 0 0 4px; }
+  .gauge .seg.ok{ background:var(--ok); }
+  .gauge .seg.good{ background:var(--good); border-radius:0 4px 4px 0; }
+  .gauge .needle{
+    position:absolute;
+    top:-3px;
+    width:3px;
+    height:12px;
+    background:var(--paper);
+    border-radius:2px;
+    transform:translateX(-50%);
+    box-shadow:0 0 0 2px var(--ink);
+    transition:left .25s ease;
+    display:none;
+  }
+  .gauge .needle.show{ display:block; }
+  .gauge-scale{
+    display:flex;
+    justify-content:space-between;
+    font-size:10.5px;
+    color:var(--paper-faint);
+    margin-top:6px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+  }
+
+  /* ---------- Input cards ---------- */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:var(--radius);
+    padding:18px 18px 6px;
+    margin-bottom:14px;
+  }
+  .card .card-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .card h2{ font-size:13px; font-weight:600; color:var(--paper-dim); margin:0; }
+  .card .saved-tag{ font-size:10.5px; color:var(--paper-faint); font-weight:400; }
+
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:13.5px; color:var(--paper); margin-bottom:6px; }
+  .field .hint{ font-size:11.5px; color:var(--paper-faint); margin-top:5px; }
+  .field .input-wrap{
+    display:flex;
+    align-items:center;
+    background:var(--panel-2);
+    border:1px solid var(--hair);
+    border-radius:8px;
+    padding:0 12px;
+    transition:border-color .15s ease;
+  }
+  .field .input-wrap:focus-within{ border-color:var(--accent); }
+  .field .prefix{ font-family:'IBM Plex Mono',monospace; color:var(--paper-dim); font-size:16px; padding-right:4px; }
+  .field input{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:17px;
+    padding:13px 0;
+    min-width:0;
+    -moz-appearance:textfield;
+  }
+  .field input::-webkit-outer-spin-button,
+  .field input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
+  .field input::placeholder{ color:#5A5F66; }
+  .row2{ display:flex; gap:10px; }
+  .row2 .field{ flex:1; }
+
+  .actions{ display:flex; gap:10px; margin-bottom:4px; }
+  button.clear{
+    flex:1;
+    background:transparent;
+    border:1px solid var(--hair);
+    color:var(--paper-dim);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14.5px;
+    font-weight:500;
+    padding:13px 0;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  button.clear:active{ background:var(--panel-2); }
+
+  footer{
+    text-align:center;
+    font-size:11px;
+    color:var(--paper-faint);
+    margin-top:20px;
+    line-height:1.6;
+  }
+  footer .disclaimer{
+    font-size:10.5px;
+    color:#4A4E54;
+    margin-top:6px;
+  }
+
+  @media (max-width:360px){
+    .decision-banner .text{ font-size:18px; }
+  }
+
+  /* ---------- Account bar ---------- */
+  .account-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:var(--radius);
+    padding:11px 14px;
+    margin-bottom:14px;
+    font-size:12.5px;
+  }
+  .account-bar .status{ color:var(--paper-dim); }
+  .account-bar .status b{ color:var(--paper); font-weight:600; }
+  .account-bar button.link-btn{
+    background:transparent;
+    border:none;
+    color:var(--accent);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    padding:4px 0;
+  }
+  .account-sync-note{ font-size:10.5px; color:var(--paper-faint); margin-top:2px; }
+  .account-tabs{ display:flex; gap:6px; margin-bottom:14px; }
+  .account-tabs button{
+    flex:1;
+    background:var(--panel-2);
+    border:1px solid var(--hair);
+    color:var(--paper-dim);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    padding:9px 0;
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .account-tabs button.active{ color:var(--paper); border-color:var(--accent); }
+
+  /* ---------- Tabs ---------- */
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:var(--radius);
+    padding:4px;
+  }
+  .tab-btn{
+    flex:1;
+    background:transparent;
+    border:none;
+    color:var(--paper-dim);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    padding:10px 0;
+    border-radius:7px;
+    cursor:pointer;
+  }
+  .tab-btn.active{ background:var(--panel-2); color:var(--paper); }
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  /* ---------- Take / Decline actions ---------- */
+  .actions.two{ gap:10px; }
+  button.take-btn{
+    flex:1;
+    background:rgba(95,167,119,0.14);
+    border:1px solid rgba(95,167,119,0.40);
+    color:var(--good);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14.5px;
+    font-weight:600;
+    padding:13px 0;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  button.take-btn:active{ background:rgba(95,167,119,0.22); }
+  button.decline-btn{
+    flex:1;
+    background:rgba(217,100,90,0.14);
+    border:1px solid rgba(217,100,90,0.40);
+    color:var(--bad);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14.5px;
+    font-weight:600;
+    padding:13px 0;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  button.decline-btn:active{ background:rgba(217,100,90,0.22); }
+  .saved-flash{
+    text-align:center;
+    font-size:12px;
+    color:var(--good);
+    margin:-2px 0 12px;
+    min-height:16px;
+  }
+
+  /* ---------- History view ---------- */
+  .summary-card{
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    margin-bottom:14px;
+  }
+  .tax-disclaimer{
+    background:rgba(224,169,74,0.10);
+    border:1px solid rgba(224,169,74,0.30);
+    color:var(--ok);
+    font-size:11.5px;
+    text-align:center;
+    padding:9px 12px;
+    border-radius:8px;
+    margin-bottom:14px;
+  }
+  .summary-card h2{ font-size:13px; font-weight:600; color:var(--paper-dim); margin:0 0 12px; }
+  .summary-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px 10px;
+  }
+  .summary-grid .num-item .v{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:18px;
+    font-weight:600;
+  }
+  .summary-card .card-head-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+  }
+  .summary-card .card-head-row h2{ margin:0; }
+  .month-select{
+    background:var(--panel-2);
+    border:1px solid var(--hair);
+    color:var(--paper);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:12.5px;
+    font-weight:500;
+    padding:6px 8px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .month-empty{ font-size:12.5px; color:var(--paper-faint); }
+  .day-card{
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:var(--radius);
+    padding:14px 16px;
+    margin-bottom:10px;
+  }
+  .day-card .day-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:8px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--hair);
+  }
+  .day-card .day-date{ font-size:14px; font-weight:600; color:var(--paper); }
+  .day-card .day-total{ font-size:11.5px; color:var(--paper-dim); font-family:'IBM Plex Mono',monospace; }
+  .day-job-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13.5px;
+    padding:5px 0;
+    color:var(--paper-dim);
+  }
+  .day-job-row .v{ font-family:'IBM Plex Mono',monospace; color:var(--paper); }
+  .day-job-row{ align-items:center; }
+  .day-job-row-wrap{ padding:5px 0; }
+  .day-job-row-wrap .day-job-row{ padding:0; }
+  .row-meta{
+    font-size:11.5px;
+    color:var(--paper-faint);
+    font-family:'IBM Plex Mono',monospace;
+    margin-top:2px;
+    padding-left:2px;
+  }
+  .row-main{ display:flex; gap:14px; flex:1; }
+  .row-actions{ display:flex; gap:6px; }
+  .icon-btn{
+    background:transparent;
+    border:1px solid var(--hair);
+    color:var(--paper-dim);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:11px;
+    font-weight:500;
+    padding:5px 9px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .icon-btn:active{ background:var(--panel-2); }
+  .icon-btn.save-btn{ color:var(--good); border-color:rgba(95,167,119,0.40); }
+  .icon-btn.delete-btn{ color:var(--bad); border-color:rgba(217,100,90,0.40); }
+  .day-job-row.editing{ align-items:center; gap:8px; padding:6px 0; }
+  .day-job-row.editing .input-wrap{
+    background:var(--panel-2);
+    border:1px solid var(--hair);
+    border-radius:6px;
+    padding:0 8px;
+  }
+  .day-job-row.editing input{
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--paper);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    padding:7px 0;
+    width:70px;
+  }
+  .day-job-row.editing .prefix{ font-family:'IBM Plex Mono',monospace; color:var(--paper-dim); font-size:12px; }
+  .add-job-day-row{ margin-top:8px; text-align:right; }
+  .add-job-day-btn{
+    background:transparent;
+    border:1px dashed var(--hair);
+    color:var(--paper-dim);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:11.5px;
+    padding:6px 10px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .add-job-day-btn:active{ background:var(--panel-2); }
+  .add-job-bar{ margin-bottom:10px; }
+  .add-job-btn{
+    width:100%;
+    background:var(--panel);
+    border:1px solid var(--hair);
+    color:var(--paper);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    padding:12px 0;
+    border-radius:var(--radius);
+    cursor:pointer;
+  }
+  .add-job-btn:active{ background:var(--panel-2); }
+  .add-job-form{
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:var(--radius);
+    padding:16px 18px 4px;
+    margin-bottom:14px;
+  }
+  .inline-add-form{
+    background:var(--panel-2);
+    border:1px solid var(--hair);
+    border-radius:8px;
+    padding:12px 12px 2px;
+    margin-top:10px;
+  }
+  .form-error{
+    color:var(--bad);
+    font-size:12px;
+    min-height:14px;
+    margin:2px 0 6px;
+  }
+  .history-empty{
+    text-align:center;
+    color:var(--paper-faint);
+    font-size:13px;
+    padding:30px 10px;
+  }
+  .odo-block{
+    margin-top:10px;
+    padding-top:10px;
+    border-top:1px dashed var(--hair);
+  }
+  .odo-block.empty{ border-top:none; padding-top:0; text-align:right; }
+  .odo-block.editing{
+    background:var(--panel-2);
+    border:1px solid var(--hair);
+    border-radius:8px;
+    padding:12px 12px 2px;
+    border-top:1px solid var(--hair);
+  }
+  .odo-block-label{ font-size:11.5px; font-weight:600; color:var(--paper-dim); margin-bottom:8px; }
+  .odo-summary{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    font-family:'IBM Plex Mono',monospace;
+    color:var(--paper);
+  }
+  .odo-notes{ font-size:12px; color:var(--paper-dim); margin-top:4px; font-family:'Space Grotesk',sans-serif; }
+  .odo-tax-line{
+    font-size:11.5px;
+    color:var(--paper-dim);
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px solid var(--hair);
+  }
+  .odo-tax-line b{ color:var(--paper); font-weight:600; }
+  .odo-source{ color:var(--paper-faint); }
+
+  /* ---------- Screenshot analyzer ---------- */
+  .scan-bar{ margin-bottom:14px; }
+  .scan-btn{
+    width:100%;
+    background:rgba(224,169,74,0.10);
+    border:1px solid rgba(224,169,74,0.35);
+    color:var(--accent);
+    font-family:'Space Grotesk',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    padding:14px 0;
+    border-radius:var(--radius);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+  }
+  .scan-btn:active{ background:rgba(224,169,74,0.18); }
+  .scan-btn .ico{ font-size:17px; }
+
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,11,13,0.72);
+    z-index:50;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal-sheet{
+    width:100%;
+    max-width:430px;
+    background:var(--panel);
+    border:1px solid var(--hair);
+    border-radius:16px 16px 0 0;
+    padding:20px 18px 24px;
+    max-height:88vh;
+    overflow-y:auto;
+  }
+  .modal-sheet h3{
+    font-size:16px;
+    font-weight:700;
+    margin:0 0 4px;
+  }
+  .modal-sub{
+    font-size:12.5px;
+    color:var(--paper-dim);
+    margin-bottom:16px;
+    line-height:1.45;
+  }
+  .modal-sub.warn{ color:var(--ok); }
+  .modal-sub.err{ color:var(--bad); }
+
+  .scan-loading{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:30px 10px 10px;
+    gap:14px;
+  }
+  .spinner{
+    width:30px; height:30px;
+    border-radius:50%;
+    border:3px solid var(--hair);
+    border-top-color:var(--accent);
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .scan-loading .msg{ font-size:13px; color:var(--paper-dim); }
+
+  .status-pill{
+    display:inline-block;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding:4px 9px;
+    border-radius:20px;
+    margin-bottom:14px;
+  }
+  .status-pill.success{ background:rgba(95,167,119,0.16); color:var(--good); }
+  .status-pill.review{ background:rgba(224,169,74,0.16); color:var(--ok); }
+  .status-pill.failed{ background:rgba(217,100,90,0.16); color:var(--bad); }
+
+  .modal-actions{ display:flex; gap:10px; margin-top:18px; }
+  .modal-actions button{ flex:1; }
+
+  .debug-toggle{
+    background:transparent;
+    border:none;
+    color:var(--paper-faint);
+    font-size:11.5px;
+    text-decoration:underline;
+    padding:10px 0 0;
+    cursor:pointer;
+    width:100%;
+    text-align:center;
+  }
+  .debug-panel{
+    display:none;
+    margin-top:10px;
+    background:var(--panel-2);
+    border:1px solid var(--hair);
+    border-radius:8px;
+    padding:10px 12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--paper-dim);
+    white-space:pre-wrap;
+    word-break:break-word;
+    max-height:160px;
+    overflow-y:auto;
+  }
+  .debug-panel.show{ display:block; }
+</style>
+</head>
+<body>
+<noscript>
+  <div style="max-width:430px;margin:14px auto;background:#3a2a1f;border:1px solid #E0A94A;color:#F1EFE9;padding:14px 16px;border-radius:10px;font-family:sans-serif;font-size:14px;line-height:1.5;">
+    <strong>This calculator needs JavaScript to work.</strong><br>
+    If you opened this by tapping the file directly, you're likely in a static preview (Quick Look) that doesn't run scripts.
+    Tap the Share icon and choose <strong>"Open in Safari"</strong> (or your browser) to use the working version.
+  </div>
+</noscript>
+<div class="app">
+
+  <header>
+    <h1>Gig Check</h1>
+    <span class="tag">should I take it?</span>
+  </header>
+
+  <div class="account-bar">
+    <div class="status" id="accountStatus">Not signed in <div class="account-sync-note">Data is only on this device</div></div>
+    <button class="link-btn" id="accountBtn">Sign In / Sign Up</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabCalcBtn">Calculator</button>
+    <button class="tab-btn" id="tabHistoryBtn">History</button>
+  </div>
+
+  <!-- ==================== CALCULATOR VIEW ==================== -->
+  <div class="view active" id="viewCalc">
+
+  <!-- Screenshot analyzer -->
+  <div class="scan-bar">
+    <button class="scan-btn" id="scanBtn"><span class="ico">&#128247;</span> Check This Order</button>
+    <input type="file" id="scanFileInput" accept="image/*" style="display:none;">
+  </div>
+
+  <!-- Decision + numbers -->
+  <div class="decision-card">
+
+    <div class="decision-banner pending" id="banner">
+      <span class="emoji" id="emoji">&#9898;</span>
+      <span class="text" id="decisionText">Enter a job</span>
+    </div>
+    <div class="decision-sub" id="decisionSub">Fill in payout and miles below to get a recommendation.</div>
+
+    <div class="numbers-grid">
+      <div class="num-item">
+        <div class="k">Payout</div>
+        <div class="v dim" id="outPayout">&mdash;</div>
+      </div>
+      <div class="num-item">
+        <div class="k">Gas</div>
+        <div class="v dim" id="outGas">&mdash;</div>
+      </div>
+      <div class="num-item">
+        <div class="k">Profit After Gas</div>
+        <div class="v dim" id="outProfit">&mdash;</div>
+      </div>
+      <div class="num-item">
+        <div class="k" id="perMileLabel">Profit After Gas / Mile</div>
+        <div class="v dim" id="outPerMile">&mdash;</div>
+      </div>
+    </div>
+
+    <div class="hourly-row" id="hourlyRow" style="display:none;">
+      <div class="k">Estimated Hourly</div>
+      <div class="v" id="outHourly">&mdash;</div>
+    </div>
+
+    <div class="min-payout muted" id="minPayoutBox">
+      <span id="minPayoutText">Enter this job's miles and your vehicle info to see the minimum payout you'd need.</span>
+    </div>
+
+    <div class="gauge-wrap">
+      <div class="gauge" id="gauge">
+        <div class="seg bad" id="segBad"></div>
+        <div class="seg ok" id="segOk"></div>
+        <div class="seg good" id="segGood"></div>
+        <div class="needle" id="needle" style="left:0%"></div>
+      </div>
+      <div class="gauge-scale">
+        <span>Skip</span>
+        <span>Maybe</span>
+        <span>Take</span>
+      </div>
+    </div>
+
+    <div class="actions two" style="margin-top:16px;">
+      <button class="take-btn" id="takenBtn">Job Was Taken</button>
+      <button class="decline-btn" id="declineBtn">Job Was Declined</button>
+    </div>
+    <div class="saved-flash" id="savedFlash"></div>
+
+  </div>
+
+  <!-- This job -->
+  <div class="card">
+    <div class="card-head"><h2>This job</h2></div>
+
+    <div class="field">
+      <label for="payout">Payout</label>
+      <div class="input-wrap">
+        <span class="prefix">$</span>
+        <input id="payout" type="number" inputmode="decimal" placeholder="0.00" step="0.01" min="0">
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="miles">Total miles</label>
+      <div class="input-wrap">
+        <input id="miles" type="number" inputmode="decimal" placeholder="0.0" step="0.1" min="0">
+        <span class="prefix">mi</span>
+      </div>
+      <div class="hint">Pickup + delivery + any extra miles.</div>
+    </div>
+
+    <div class="field">
+      <label for="time">Estimated time <span style="color:var(--paper-faint);">(optional, minutes)</span></label>
+      <div class="input-wrap">
+        <input id="time" type="number" inputmode="decimal" placeholder="e.g. 25" step="1" min="0">
+        <span class="prefix">min</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vehicle -->
+  <div class="card">
+    <div class="card-head">
+      <h2>Your vehicle</h2>
+      <span class="saved-tag">saved on this device</span>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label for="mpg">Vehicle MPG</label>
+        <div class="input-wrap">
+          <input id="mpg" type="number" inputmode="decimal" placeholder="30" step="1" min="1">
+        </div>
+      </div>
+      <div class="field">
+        <label for="gasPrice">Gas price</label>
+        <div class="input-wrap">
+          <span class="prefix">$</span>
+          <input id="gasPrice" type="number" inputmode="decimal" placeholder="3.09" step="0.01" min="0">
+          <span class="prefix">/gal</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Target -->
+  <div class="card">
+    <div class="card-head">
+      <h2>Your target</h2>
+      <span class="saved-tag">saved on this device</span>
+    </div>
+
+    <div class="field">
+      <label for="target">Minimum profit / mile</label>
+      <div class="input-wrap">
+        <span class="prefix">$</span>
+        <input id="target" type="number" inputmode="decimal" placeholder="2.00" step="0.05" min="0">
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Your vehicle and target stay saved on this device &mdash; only this job's numbers reset.
+    <div class="disclaimer">Fuel estimate only. Does not include depreciation, maintenance, insurance, taxes, or other vehicle expenses.</div>
+  </footer>
+
+  </div>
+  <!-- ==================== END CALCULATOR VIEW ==================== -->
+
+  <!-- ==================== HISTORY VIEW ==================== -->
+  <div class="view" id="viewHistory">
+
+    <div class="tax-disclaimer">Estimates only &mdash; not tax advice. Consult a tax professional for your actual filing.</div>
+
+    <div class="summary-card">
+      <div class="card-head-row">
+        <h2>Monthly Summary</h2>
+        <select class="month-select" id="monthSelect"></select>
+      </div>
+      <div class="summary-grid" id="monthlyGrid">
+        <div class="num-item">
+          <div class="k">Total Payout</div>
+          <div class="v" id="monPayout">$0.00</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Total Fuel Spent</div>
+          <div class="v" id="monFuel">$0.00</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Profit After Fuel</div>
+          <div class="v" id="monProfit">$0.00</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Jobs Taken</div>
+          <div class="v" id="monJobs">0</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Total Miles</div>
+          <div class="v" id="monMiles">0.0</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Business Miles (Tax Log)</div>
+          <div class="v" id="monBusinessMiles">0.0</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Est. Tax Deduction</div>
+          <div class="v" id="monDeduction">$0.00</div>
+        </div>
+      </div>
+      <div class="month-empty" id="monthEmpty" style="display:none;">No jobs recorded for this month yet.</div>
+    </div>
+
+    <div class="summary-card">
+      <h2>All-Time Summary</h2>
+      <div class="summary-grid">
+        <div class="num-item">
+          <div class="k">Total Payout</div>
+          <div class="v" id="sumPayout">$0.00</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Total Miles</div>
+          <div class="v" id="sumMiles">0.0</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Jobs Taken</div>
+          <div class="v" id="sumJobs">0</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Business Miles (Tax Log)</div>
+          <div class="v" id="sumBusinessMiles">0.0</div>
+        </div>
+        <div class="num-item">
+          <div class="k">Est. Tax Deduction</div>
+          <div class="v" id="sumDeduction">$0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="add-job-bar">
+      <button class="add-job-btn" id="csvExportBtn">Export Mileage Log (CSV)</button>
+    </div>
+
+    <div class="add-job-bar">
+      <button class="add-job-btn" id="addJobDateBtn">+ Add Job For A Date</button>
+    </div>
+    <div class="add-job-form" id="addJobDateForm" style="display:none;">
+      <div class="field">
+        <label for="addDateInput">Date</label>
+        <div class="input-wrap">
+          <input id="addDateInput" type="date">
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="addPayoutInput">Payout</label>
+          <div class="input-wrap">
+            <span class="prefix">$</span>
+            <input id="addPayoutInput" type="number" inputmode="decimal" placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+        <div class="field">
+          <label for="addMilesInput">Miles</label>
+          <div class="input-wrap">
+            <input id="addMilesInput" type="number" inputmode="decimal" placeholder="0.0" step="0.1" min="0">
+            <span class="prefix">mi</span>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="addGasPriceInput">Gas price at the time <span style="color:var(--paper-faint);">(optional)</span></label>
+        <div class="input-wrap">
+          <span class="prefix">$</span>
+          <input id="addGasPriceInput" type="number" inputmode="decimal" placeholder="3.09" step="0.01" min="0">
+          <span class="prefix">/gal</span>
+        </div>
+      </div>
+      <div class="form-error" id="addJobDateError"></div>
+      <div class="actions two">
+        <button class="take-btn" id="addJobSaveBtn">Save</button>
+        <button class="decline-btn" id="addJobCancelBtn">Cancel</button>
+      </div>
+    </div>
+
+    <div id="historyList"></div>
+
+    <footer>
+      Tax deduction estimates use the IRS standard mileage rate in effect on each date recorded, including mid-year rate changes. Fuel estimate for profitability is separate from the tax mileage log. Consult a tax professional for your actual filing.
+    </footer>
+
+  </div>
+  <!-- ==================== END HISTORY VIEW ==================== -->
+
+</div>
+
+<!-- ==================== SCAN MODAL ==================== -->
+<div class="modal-overlay" id="scanModal">
+  <div class="modal-sheet" id="scanSheet">
+    <!-- content injected by JS: loading / confirm / failed states -->
+  </div>
+</div>
+
+<!-- ==================== ACCOUNT MODAL ==================== -->
+<div class="modal-overlay" id="accountModal">
+  <div class="modal-sheet" id="accountSheet">
+    <!-- content injected by JS: sign in / sign up / signed-in states -->
+  </div>
+</div>
+
+<!-- Firebase (compat SDK — works with plain <script> tags, no build step) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+  // ============================================================
+  // FIREBASE SETUP — replace with your own project's config.
+  // Get this from: Firebase Console -> Project Settings -> General
+  // -> "Your apps" -> Web app -> SDK setup and configuration.
+  // These values are safe to expose client-side; Firestore/Auth
+  // security rules (not this file) control who can access what.
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyCE4w-Bga3OZZEYQaHRFglJdUIQun7bGS0",
+    authDomain: "gig-check-80826.firebaseapp.com",
+    projectId: "gig-check-80826",
+    storageBucket: "gig-check-80826.firebasestorage.app",
+    messagingSenderId: "732828435442",
+    appId: "1:732828435442:web:4d259919baa357ea9a216b"
+  };
+  let firebaseReady = false;
+  try {
+    if (firebaseConfig.apiKey !== "YOUR_API_KEY"){
+      firebase.initializeApp(firebaseConfig);
+      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+      firebaseReady = true;
+    }
+  } catch (e) { console.warn('Firebase not configured yet:', e); }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script>
+  // Fallback: if jsDelivr didn't load Tesseract (network policy, ad blocker, etc.),
+  // try unpkg as a second source before giving up.
+  window.addEventListener('load', () => {
+    if (typeof Tesseract === 'undefined'){
+      const s = document.createElement('script');
+      s.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+      document.head.appendChild(s);
+    }
+  });
+</script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const els = {
+    payout: $('payout'), miles: $('miles'), time: $('time'),
+    mpg: $('mpg'), gasPrice: $('gasPrice'), target: $('target'),
+    banner: $('banner'), emoji: $('emoji'), decisionText: $('decisionText'), decisionSub: $('decisionSub'),
+    outPayout: $('outPayout'), outGas: $('outGas'), outProfit: $('outProfit'), outPerMile: $('outPerMile'),
+    perMileLabel: $('perMileLabel'),
+    hourlyRow: $('hourlyRow'), outHourly: $('outHourly'),
+    minPayoutBox: $('minPayoutBox'), minPayoutText: $('minPayoutText'),
+    gauge: $('gauge'), segBad: $('segBad'), segOk: $('segOk'), segGood: $('segGood'), needle: $('needle'),
+    takenBtn: $('takenBtn'), declineBtn: $('declineBtn'), savedFlash: $('savedFlash'),
+    tabCalcBtn: $('tabCalcBtn'), tabHistoryBtn: $('tabHistoryBtn'),
+    viewCalc: $('viewCalc'), viewHistory: $('viewHistory'),
+    sumPayout: $('sumPayout'), sumMiles: $('sumMiles'), sumJobs: $('sumJobs'), sumDeduction: $('sumDeduction'),
+    sumBusinessMiles: $('sumBusinessMiles'), csvExportBtn: $('csvExportBtn'),
+    monthSelect: $('monthSelect'), monPayout: $('monPayout'), monFuel: $('monFuel'), monProfit: $('monProfit'),
+    monJobs: $('monJobs'), monMiles: $('monMiles'), monDeduction: $('monDeduction'), monBusinessMiles: $('monBusinessMiles'),
+    monthlyGrid: $('monthlyGrid'), monthEmpty: $('monthEmpty'),
+    historyList: $('historyList'),
+    addJobDateBtn: $('addJobDateBtn'), addJobDateForm: $('addJobDateForm'),
+    addDateInput: $('addDateInput'), addPayoutInput: $('addPayoutInput'), addMilesInput: $('addMilesInput'),
+    addGasPriceInput: $('addGasPriceInput'),
+    addJobSaveBtn: $('addJobSaveBtn'), addJobCancelBtn: $('addJobCancelBtn'), addJobDateError: $('addJobDateError'),
+    scanBtn: $('scanBtn'), scanFileInput: $('scanFileInput'), scanModal: $('scanModal'), scanSheet: $('scanSheet'),
+    accountBtn: $('accountBtn'), accountStatus: $('accountStatus'), accountModal: $('accountModal'), accountSheet: $('accountSheet')
+  };
+
+  const STORAGE_KEY = 'jobCheckSettings';
+  const HISTORY_KEY = 'gigCheckJobHistory';
+  const MILEAGE_LOG_KEY = 'gigCheckMileageLog';
+  const DEFAULT_TARGET = 2.00;
+  const SKIP_RATIO = 0.5; // below 50% of target => Skip. 50%-100% => Maybe.
+
+  // IRS standard business mileage rate by effective date range.
+  // Update this table once a year (and for any rare mid-year IRS change,
+  // like the one in 2026). Source: irs.gov/newsroom mileage rate notices.
+  const IRS_MILEAGE_RATES = [
+    { from: '2019-01-01', to: '2019-12-31', rate: 0.58 },
+    { from: '2020-01-01', to: '2020-12-31', rate: 0.575 },
+    { from: '2021-01-01', to: '2021-12-31', rate: 0.56 },
+    { from: '2022-01-01', to: '2022-06-30', rate: 0.585 },
+    { from: '2022-07-01', to: '2022-12-31', rate: 0.625 },
+    { from: '2023-01-01', to: '2023-12-31', rate: 0.655 },
+    { from: '2024-01-01', to: '2024-12-31', rate: 0.67 },
+    { from: '2025-01-01', to: '2025-12-31', rate: 0.70 },
+    { from: '2026-01-01', to: '2026-06-30', rate: 0.725 },
+    { from: '2026-07-01', to: '2026-12-31', rate: 0.76 }
+  ];
+
+  function irsRateForDate(dateKey){
+    for (let i = 0; i < IRS_MILEAGE_RATES.length; i++){
+      const r = IRS_MILEAGE_RATES[i];
+      if (dateKey >= r.from && dateKey <= r.to) return r.rate;
+    }
+    // outside the table: use the nearest known rate rather than guessing
+    if (dateKey < IRS_MILEAGE_RATES[0].from) return IRS_MILEAGE_RATES[0].rate;
+    return IRS_MILEAGE_RATES[IRS_MILEAGE_RATES.length - 1].rate;
+  }
+
+  function hasVal(el){ return el.value !== null && el.value.trim() !== ''; }
+  function parseNum(el){ const v = parseFloat(el.value); return isNaN(v) ? NaN : v; }
+
+  function fmtMoney(n){
+    const sign = n < 0 ? '\u2212' : '';
+    return sign + '$' + Math.abs(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtCost(n){
+    // always shown as a subtraction, e.g. −$0.50
+    return '\u2212$' + Math.abs(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtRate(n){ return fmtMoney(n) + '/mi'; }
+
+  function setNum(el, text, opts){
+    opts = opts || {};
+    el.textContent = text;
+    el.classList.toggle('dim', !!opts.dim);
+    el.classList.toggle('neg', !!opts.neg);
+  }
+
+  // ---------- persistence (vehicle + target only) ----------
+  function loadSettings(){
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      if (data && typeof data === 'object'){
+        if (data.mpg !== undefined && data.mpg !== null) els.mpg.value = data.mpg;
+        if (data.gasPrice !== undefined && data.gasPrice !== null) els.gasPrice.value = data.gasPrice;
+        if (data.target !== undefined && data.target !== null) els.target.value = data.target;
+      }
+    } catch (e) { /* ignore corrupt/blocked storage */ }
+  }
+
+  function saveSettings(){
+    try {
+      const data = {
+        mpg: hasVal(els.mpg) ? els.mpg.value : '',
+        gasPrice: hasVal(els.gasPrice) ? els.gasPrice.value : '',
+        target: hasVal(els.target) ? els.target.value : ''
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      syncToCloud();
+    } catch (e) { /* private mode / storage disabled — fail silently */ }
+  }
+
+  // ---------- job history (grouped by day) ----------
+  function todayKey(){
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
+  }
+
+  function fmtDateKey(key){
+    const [y, m, d] = key.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+  }
+
+  function loadHistory(){
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (!raw) return {};
+      const data = JSON.parse(raw);
+      return (data && typeof data === 'object') ? data : {};
+    } catch (e) { return {}; }
+  }
+
+  function saveHistory(history){
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); syncToCloud(); }
+    catch (e) { /* private mode / storage disabled — fail silently */ }
+  }
+
+  function cleanRate(n){ return (typeof n === 'number' && !isNaN(n) && n >= 0) ? n : null; }
+
+  function recordJobTaken(payout, miles, gasPrice, mpg){
+    const history = loadHistory();
+    const key = todayKey();
+    if (!history[key]) history[key] = [];
+    history[key].push({ payout: payout, miles: miles, gasPrice: cleanRate(gasPrice), mpg: cleanRate(mpg) });
+    saveHistory(history);
+  }
+
+  function addJobToDate(dateKey, payout, miles, gasPrice, mpg){
+    const history = loadHistory();
+    if (!history[dateKey]) history[dateKey] = [];
+    history[dateKey].push({ payout: payout, miles: miles, gasPrice: cleanRate(gasPrice), mpg: cleanRate(mpg) });
+    saveHistory(history);
+  }
+
+  function updateJob(dateKey, index, payout, miles, gasPrice, mpg){
+    const history = loadHistory();
+    if (!history[dateKey] || !history[dateKey][index]) return;
+    history[dateKey][index] = { payout: payout, miles: miles, gasPrice: cleanRate(gasPrice), mpg: cleanRate(mpg) };
+    saveHistory(history);
+  }
+
+  // Estimated fuel cost for a stored job. Returns NaN if the job has no
+  // gas price / mpg on record (e.g. entries saved before this feature existed).
+  function jobGasCost(job){
+    const gp = job.gasPrice, mpg = job.mpg;
+    if (gp === null || gp === undefined || isNaN(gp)) return NaN;
+    if (mpg === null || mpg === undefined || isNaN(mpg) || mpg <= 0) return NaN;
+    return (job.miles / mpg) * gp;
+  }
+
+  function monthKeyOf(dateKey){ return dateKey.slice(0, 7); } // "YYYY-MM"
+
+  function fmtMonthKey(key){
+    const [y, m] = key.split('-').map(Number);
+    const dt = new Date(y, m - 1, 1);
+    return dt.toLocaleDateString(undefined, { month:'long', year:'numeric' });
+  }
+
+  function deleteJob(dateKey, index){
+    const history = loadHistory();
+    if (!history[dateKey]) return;
+    history[dateKey].splice(index, 1);
+    if (history[dateKey].length === 0) delete history[dateKey];
+    saveHistory(history);
+  }
+
+  // ---------- tax mileage log (odometer-based, separate from job trip data) ----------
+  function loadMileageLog(){
+    try {
+      const raw = localStorage.getItem(MILEAGE_LOG_KEY);
+      if (!raw) return {};
+      const data = JSON.parse(raw);
+      return (data && typeof data === 'object') ? data : {};
+    } catch (e) { return {}; }
+  }
+
+  function saveMileageLog(log){
+    try { localStorage.setItem(MILEAGE_LOG_KEY, JSON.stringify(log)); syncToCloud(); }
+    catch (e) { /* private mode / storage disabled — fail silently */ }
+  }
+
+  function saveOdometerEntry(dateKey, startOdo, endOdo, notes){
+    const log = loadMileageLog();
+    log[dateKey] = { startOdometer: startOdo, endOdometer: endOdo, notes: notes || '' };
+    saveMileageLog(log);
+  }
+
+  function deleteOdometerEntry(dateKey){
+    const log = loadMileageLog();
+    delete log[dateKey];
+    saveMileageLog(log);
+  }
+
+  // Business miles for a given day, for tax purposes. Prefers the
+  // odometer-based reading (start/end) when logged, since that's the
+  // IRS-preferred documentation format and captures deadhead/repositioning
+  // miles between jobs. Falls back to the sum of per-job trip miles for
+  // days that don't have an odometer entry — this keeps existing history
+  // usable for tax totals without requiring anyone to go back and fill in
+  // odometer readings retroactively.
+  function businessMilesForDay(dateKey, jobs, mileageLog){
+    const entry = mileageLog[dateKey];
+    if (entry && typeof entry.startOdometer === 'number' && typeof entry.endOdometer === 'number' && entry.endOdometer > entry.startOdometer){
+      return entry.endOdometer - entry.startOdometer;
+    }
+    return (jobs || []).reduce((sum, j) => sum + (j.miles || 0), 0);
+  }
+
+  function odometerSourceLabel(dateKey, mileageLog){
+    const entry = mileageLog[dateKey];
+    const hasOdo = entry && typeof entry.startOdometer === 'number' && typeof entry.endOdometer === 'number' && entry.endOdometer > entry.startOdometer;
+    return hasOdo ? 'odometer log' : 'job trip miles';
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderOdometerBlock(dateKey, mileageLog){
+    const entry = mileageLog[dateKey];
+
+    if (editingOdoKey === dateKey){
+      const s = entry && typeof entry.startOdometer === 'number' ? entry.startOdometer : '';
+      const e = entry && typeof entry.endOdometer === 'number' ? entry.endOdometer : '';
+      const n = entry ? (entry.notes || '') : '';
+      return '<div class="odo-block editing">' +
+        '<div class="odo-block-label">Odometer log (for tax mileage)</div>' +
+        '<div class="row2">' +
+          '<div class="field"><label>Starting odometer</label><div class="input-wrap"><input type="number" step="1" min="0" id="odoStart" value="' + s + '"></div></div>' +
+          '<div class="field"><label>Ending odometer</label><div class="input-wrap"><input type="number" step="1" min="0" id="odoEnd" value="' + e + '"></div></div>' +
+        '</div>' +
+        '<div class="field"><label>Notes <span style="color:var(--paper-faint);">(optional)</span></label><div class="input-wrap"><input type="text" id="odoNotes" value="' + escapeHtml(n) + '" placeholder="e.g. DoorDash shift, downtown route"></div></div>' +
+        '<div class="form-error" id="odoError"></div>' +
+        '<div class="modal-actions">' +
+          '<button class="decline-btn" data-action="cancel-odo-edit">Cancel</button>' +
+          '<button class="take-btn" data-action="save-odo" data-date="' + dateKey + '">Save</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    if (deletingOdoKey === dateKey){
+      return '<div class="odo-block editing">' +
+        '<span style="color:var(--bad);">Delete this day&rsquo;s odometer log?</span>' +
+        '<div class="modal-actions">' +
+          '<button class="icon-btn" data-action="cancel-odo-delete">Cancel</button>' +
+          '<button class="icon-btn delete-btn" data-action="confirm-odo-delete" data-date="' + dateKey + '">Confirm</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    const hasOdo = entry && typeof entry.startOdometer === 'number' && typeof entry.endOdometer === 'number' && entry.endOdometer > entry.startOdometer;
+    if (hasOdo){
+      const miles = entry.endOdometer - entry.startOdometer;
+      return '<div class="odo-block">' +
+        '<div class="odo-summary">' +
+          '<span>' + entry.startOdometer.toLocaleString() + ' &rarr; ' + entry.endOdometer.toLocaleString() + ' (' + miles.toFixed(1) + ' tax mi)</span>' +
+          '<span class="row-actions">' +
+            '<button class="icon-btn" data-action="edit-odo" data-date="' + dateKey + '">Edit</button>' +
+            '<button class="icon-btn delete-btn" data-action="delete-odo" data-date="' + dateKey + '">Delete</button>' +
+          '</span>' +
+        '</div>' +
+        (entry.notes ? '<div class="odo-notes">' + escapeHtml(entry.notes) + '</div>' : '') +
+      '</div>';
+    }
+
+    return '<div class="odo-block empty">' +
+      '<button class="add-job-day-btn" data-action="open-odo-add" data-date="' + dateKey + '">+ Log odometer for this day</button>' +
+    '</div>';
+  }
+
+  // ---------- history view state ----------
+  let editingId = null;    // "dateKey|index" of row currently being edited
+  let deletingId = null;   // "dateKey|index" of row awaiting delete confirmation
+  let addingDayKey = null; // dateKey currently showing an inline "add job" form
+  let editingOdoKey = null;  // dateKey currently showing the odometer edit form
+  let deletingOdoKey = null; // dateKey currently confirming odometer entry deletion
+
+  let selectedMonth = null; // "YYYY-MM" currently shown in the Monthly Summary card
+
+  function gasMetaHtml(job){
+    const gp = job.gasPrice;
+    const cost = jobGasCost(job);
+    const priceText = (gp === null || gp === undefined || isNaN(gp)) ? '\u2014' : ('$' + gp.toFixed(2) + '/gal');
+    const costText = isNaN(cost) ? '\u2014' : fmtCost(cost);
+    return 'Gas price: ' + priceText + ' &middot; Est. fuel used: ' + costText;
+  }
+
+  function renderMonthlySummary(history, mileageLog){
+    // group by month
+    const months = {}; // key -> {payout, miles, fuel, jobs, businessMiles, deduction}
+    Object.keys(history).forEach(dateKey => {
+      const mKey = monthKeyOf(dateKey);
+      if (!months[mKey]) months[mKey] = { payout:0, miles:0, fuel:0, jobs:0, businessMiles:0, deduction:0 };
+      history[dateKey].forEach(job => {
+        months[mKey].payout += job.payout;
+        months[mKey].miles += job.miles;
+        months[mKey].jobs += 1;
+        const cost = jobGasCost(job);
+        if (!isNaN(cost)) months[mKey].fuel += cost;
+      });
+    });
+    // business miles / deduction are computed per-day (not per-job), then
+    // rolled up by month, since the odometer log is a daily entry
+    const allDayKeys = new Set([...Object.keys(history), ...Object.keys(mileageLog)]);
+    allDayKeys.forEach(dateKey => {
+      const mKey = monthKeyOf(dateKey);
+      if (!months[mKey]) months[mKey] = { payout:0, miles:0, fuel:0, jobs:0, businessMiles:0, deduction:0 };
+      const dayMiles = businessMilesForDay(dateKey, history[dateKey], mileageLog);
+      months[mKey].businessMiles += dayMiles;
+      months[mKey].deduction += dayMiles * irsRateForDate(dateKey);
+    });
+
+    const monthKeys = Object.keys(months).sort().reverse();
+
+    // populate the month dropdown, preserving the current selection if still valid
+    if (monthKeys.length === 0){
+      els.monthSelect.innerHTML = '';
+      els.monthSelect.style.display = 'none';
+      els.monthlyGrid.style.display = 'none';
+      els.monthEmpty.style.display = '';
+      selectedMonth = null;
+      return;
+    }
+    els.monthSelect.style.display = '';
+    els.monthlyGrid.style.display = '';
+    els.monthEmpty.style.display = 'none';
+
+    if (!selectedMonth || monthKeys.indexOf(selectedMonth) === -1){
+      const curMonth = todayKey().slice(0, 7);
+      selectedMonth = (monthKeys.indexOf(curMonth) !== -1) ? curMonth : monthKeys[0];
+    }
+
+    els.monthSelect.innerHTML = monthKeys.map(k =>
+      '<option value="' + k + '"' + (k === selectedMonth ? ' selected' : '') + '>' + fmtMonthKey(k) + '</option>'
+    ).join('');
+
+    const m = months[selectedMonth];
+    els.monPayout.textContent = fmtMoney(m.payout);
+    els.monFuel.textContent = fmtMoney(m.fuel);
+    els.monProfit.textContent = fmtMoney(m.payout - m.fuel);
+    els.monProfit.classList.toggle('neg', (m.payout - m.fuel) < 0);
+    els.monJobs.textContent = String(m.jobs);
+    els.monMiles.textContent = m.miles.toFixed(1);
+    els.monDeduction.textContent = fmtMoney(m.deduction);
+    if (els.monBusinessMiles) els.monBusinessMiles.textContent = m.businessMiles.toFixed(1);
+  }
+
+  function renderHistory(){
+    const history = loadHistory();
+    const mileageLog = loadMileageLog();
+    const days = Array.from(new Set([...Object.keys(history), ...Object.keys(mileageLog)])).sort().reverse();
+
+    let totalPayout = 0, totalMiles = 0, totalJobs = 0, totalBusinessMiles = 0, totalDeduction = 0;
+
+    if (days.length === 0 && !addingDayKey){
+      els.historyList.innerHTML = '<div class="history-empty">No jobs recorded yet. Taken jobs will show up here.</div>';
+    } else {
+      let html = '';
+      days.forEach(key => {
+        const jobs = history[key] || [];
+        let dayPayout = 0, dayMiles = 0;
+        let rowsHtml = '';
+        jobs.forEach((job, i) => {
+          dayPayout += job.payout;
+          dayMiles += job.miles;
+          const rowId = key + '|' + i;
+          if (editingId === rowId){
+            const gpVal = (job.gasPrice === null || job.gasPrice === undefined) ? '' : job.gasPrice;
+            rowsHtml += '<div class="day-job-row-wrap">' +
+              '<div class="day-job-row editing" style="flex-wrap:wrap;">' +
+                '<div class="input-wrap"><input type="number" step="0.1" min="0" class="edit-miles" value="' + job.miles + '"><span class="prefix">mi</span></div>' +
+                '<div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.01" min="0" class="edit-payout" value="' + job.payout + '"></div>' +
+                '<div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.01" min="0" class="edit-gasprice" placeholder="gas $/gal" value="' + gpVal + '"><span class="prefix">/gal</span></div>' +
+                '<span class="row-actions">' +
+                  '<button class="icon-btn save-btn" data-action="save-edit" data-date="' + key + '" data-index="' + i + '">Save</button>' +
+                  '<button class="icon-btn" data-action="cancel-edit">Cancel</button>' +
+                '</span>' +
+                '<div class="form-error" style="width:100%;" data-edit-error></div>' +
+              '</div>' +
+            '</div>';
+          } else if (deletingId === rowId){
+            rowsHtml += '<div class="day-job-row-wrap"><div class="day-job-row editing">' +
+              '<span class="row-main" style="color:var(--bad);">Delete ' + job.miles.toFixed(1) + ' mi / ' + fmtMoney(job.payout) + '?</span>' +
+              '<span class="row-actions">' +
+                '<button class="icon-btn delete-btn" data-action="confirm-delete" data-date="' + key + '" data-index="' + i + '">Confirm</button>' +
+                '<button class="icon-btn" data-action="cancel-delete">Cancel</button>' +
+              '</span>' +
+            '</div></div>';
+          } else {
+            rowsHtml += '<div class="day-job-row-wrap">' +
+              '<div class="day-job-row">' +
+                '<span class="row-main"><span>' + job.miles.toFixed(1) + ' mi</span><span class="v">' + fmtMoney(job.payout) + '</span></span>' +
+                '<span class="row-actions">' +
+                  '<button class="icon-btn" data-action="edit" data-date="' + key + '" data-index="' + i + '">Edit</button>' +
+                  '<button class="icon-btn delete-btn" data-action="delete" data-date="' + key + '" data-index="' + i + '">Delete</button>' +
+                '</span>' +
+              '</div>' +
+              '<div class="row-meta">' + gasMetaHtml(job) + '</div>' +
+            '</div>';
+          }
+        });
+        totalPayout += dayPayout;
+        totalMiles += dayMiles;
+        totalJobs += jobs.length;
+
+        const dayBusinessMiles = businessMilesForDay(key, jobs, mileageLog);
+        const dayRate = irsRateForDate(key);
+        totalBusinessMiles += dayBusinessMiles;
+        totalDeduction += dayBusinessMiles * dayRate;
+
+        const addFormHtml = (addingDayKey === key) ?
+          '<div class="inline-add-form">' +
+            '<div class="row2">' +
+              '<div class="field"><label>Payout</label><div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.01" min="0" id="dayAddPayout" placeholder="0.00"></div></div>' +
+              '<div class="field"><label>Miles</label><div class="input-wrap"><input type="number" step="0.1" min="0" id="dayAddMiles" placeholder="0.0"><span class="prefix">mi</span></div></div>' +
+            '</div>' +
+            '<div class="field"><label>Gas price at the time <span style="color:var(--paper-faint);">(optional)</span></label><div class="input-wrap"><span class="prefix">$</span><input type="number" step="0.01" min="0" id="dayAddGasPrice" placeholder="3.09"><span class="prefix">/gal</span></div></div>' +
+            '<div class="form-error" id="dayAddError"></div>' +
+            '<div class="actions two">' +
+              '<button class="take-btn" data-action="save-day-add" data-date="' + key + '">Save</button>' +
+              '<button class="decline-btn" data-action="cancel-day-add">Cancel</button>' +
+            '</div>' +
+          '</div>' : '';
+
+        html += '<div class="day-card">' +
+          '<div class="day-head"><span class="day-date">' + fmtDateKey(key) + '</span>' +
+          '<span class="day-total">' + dayMiles.toFixed(1) + ' mi &middot; ' + fmtMoney(dayPayout) + '</span></div>' +
+          (jobs.length ? rowsHtml : '<div class="row-meta" style="padding:4px 0 8px;">No jobs logged this day.</div>') +
+          '<div class="add-job-day-row"><button class="add-job-day-btn" data-action="open-day-add" data-date="' + key + '">+ Add job to this day</button></div>' +
+          addFormHtml +
+          renderOdometerBlock(key, mileageLog) +
+          '<div class="odo-tax-line">Tax mileage: <b>' + dayBusinessMiles.toFixed(1) + ' mi</b> &middot; ' + fmtMoney(dayBusinessMiles * dayRate) + ' at ' + (dayRate * 100).toFixed(1) + '&cent;/mi <span class="odo-source">(from ' + odometerSourceLabel(key, mileageLog) + ')</span></div>' +
+          '</div>';
+      });
+      els.historyList.innerHTML = html;
+    }
+
+    els.sumPayout.textContent = fmtMoney(totalPayout);
+    els.sumMiles.textContent = totalMiles.toFixed(1);
+    els.sumJobs.textContent = String(totalJobs);
+    els.sumDeduction.textContent = fmtMoney(totalDeduction);
+    if (els.sumBusinessMiles) els.sumBusinessMiles.textContent = totalBusinessMiles.toFixed(1);
+
+    renderMonthlySummary(history, mileageLog);
+  }
+
+  els.monthSelect.addEventListener('change', () => {
+    selectedMonth = els.monthSelect.value;
+    renderMonthlySummary(loadHistory(), loadMileageLog());
+  });
+
+  // ---------- CSV export (tax mileage log) ----------
+  function csvEscape(val){
+    const s = String(val);
+    if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+    return s;
+  }
+
+  function generateMileageCsv(){
+    const history = loadHistory();
+    const mileageLog = loadMileageLog();
+    const days = Array.from(new Set([...Object.keys(history), ...Object.keys(mileageLog)])).sort(); // chronological, standard for tax logs
+
+    const rows = [['Date', 'Starting Odometer', 'Ending Odometer', 'Business Miles', 'Mileage Source', 'IRS Rate', 'Estimated Deduction', 'Notes']];
+    let totalMiles = 0, totalDeduction = 0;
+
+    days.forEach(dateKey => {
+      const entry = mileageLog[dateKey];
+      const hasOdo = entry && typeof entry.startOdometer === 'number' && typeof entry.endOdometer === 'number' && entry.endOdometer > entry.startOdometer;
+      const jobs = history[dateKey] || [];
+      const miles = businessMilesForDay(dateKey, jobs, mileageLog);
+      const rate = irsRateForDate(dateKey);
+      const deduction = miles * rate;
+      totalMiles += miles;
+      totalDeduction += deduction;
+
+      rows.push([
+        dateKey,
+        hasOdo ? entry.startOdometer : '',
+        hasOdo ? entry.endOdometer : '',
+        miles.toFixed(1),
+        hasOdo ? 'Odometer log' : 'Job trip miles (estimate)',
+        (rate * 100).toFixed(1) + '\u00a2/mi',
+        '$' + deduction.toFixed(2),
+        hasOdo ? (entry.notes || '') : ''
+      ]);
+    });
+
+    rows.push(['TOTAL', '', '', totalMiles.toFixed(1), '', '', '$' + totalDeduction.toFixed(2), '']);
+
+    return rows.map(row => row.map(csvEscape).join(',')).join('\r\n');
+  }
+
+  els.csvExportBtn.addEventListener('click', () => {
+    const history = loadHistory();
+    const mileageLog = loadMileageLog();
+    if (Object.keys(history).length === 0 && Object.keys(mileageLog).length === 0) return;
+    const csv = generateMileageCsv();
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gig-check-mileage-log-' + todayKey() + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // event delegation for edit/delete/per-day-add actions inside the history list
+  els.historyList.addEventListener('click', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const dateKey = btn.dataset.date;
+    const index = btn.dataset.index !== undefined ? parseInt(btn.dataset.index, 10) : null;
+
+    if (action === 'edit'){
+      editingId = dateKey + '|' + index;
+      deletingId = null;
+      addingDayKey = null;
+      renderHistory();
+    } else if (action === 'cancel-edit'){
+      editingId = null;
+      renderHistory();
+    } else if (action === 'save-edit'){
+      const row = btn.closest('.day-job-row');
+      const miles = parseFloat(row.querySelector('.edit-miles').value);
+      const payout = parseFloat(row.querySelector('.edit-payout').value);
+      const gasPriceRaw = row.querySelector('.edit-gasprice').value;
+      const gasPrice = gasPriceRaw.trim() === '' ? null : parseFloat(gasPriceRaw);
+      if (isNaN(miles) || miles < 0 || isNaN(payout) || payout < 0){
+        row.querySelector('[data-edit-error]').textContent = 'Enter a valid payout and mileage.';
+        return;
+      }
+      // keep whatever mpg was already on record for this job (or fall back to the
+      // vehicle's currently saved MPG) so we can still estimate fuel cost after the edit.
+      const existing = loadHistory()[dateKey][index];
+      const mpg = (existing && existing.mpg) ? existing.mpg : parseNum(els.mpg);
+      updateJob(dateKey, index, payout, miles, gasPrice, mpg);
+      editingId = null;
+      renderHistory();
+    } else if (action === 'delete'){
+      deletingId = dateKey + '|' + index;
+      editingId = null;
+      renderHistory();
+    } else if (action === 'cancel-delete'){
+      deletingId = null;
+      renderHistory();
+    } else if (action === 'confirm-delete'){
+      deleteJob(dateKey, index);
+      deletingId = null;
+      renderHistory();
+    } else if (action === 'open-day-add'){
+      addingDayKey = dateKey;
+      editingId = null;
+      deletingId = null;
+      renderHistory();
+    } else if (action === 'cancel-day-add'){
+      addingDayKey = null;
+      renderHistory();
+    } else if (action === 'save-day-add'){
+      const card = btn.closest('.day-card');
+      const miles = parseFloat(card.querySelector('#dayAddMiles').value);
+      const payout = parseFloat(card.querySelector('#dayAddPayout').value);
+      const gasPriceRaw = card.querySelector('#dayAddGasPrice').value;
+      const gasPrice = gasPriceRaw.trim() === '' ? null : parseFloat(gasPriceRaw);
+      if (isNaN(miles) || miles <= 0 || isNaN(payout) || payout < 0){
+        card.querySelector('#dayAddError').textContent = 'Enter a valid payout and mileage.';
+        return;
+      }
+      addJobToDate(dateKey, payout, miles, gasPrice, parseNum(els.mpg));
+      addingDayKey = null;
+      renderHistory();
+    } else if (action === 'open-odo-add' || action === 'edit-odo'){
+      editingOdoKey = dateKey;
+      deletingOdoKey = null;
+      renderHistory();
+    } else if (action === 'cancel-odo-edit'){
+      editingOdoKey = null;
+      renderHistory();
+    } else if (action === 'save-odo'){
+      const card = btn.closest('.day-card');
+      const start = parseFloat(card.querySelector('#odoStart').value);
+      const end = parseFloat(card.querySelector('#odoEnd').value);
+      const notes = card.querySelector('#odoNotes').value.trim();
+      if (isNaN(start) || isNaN(end) || start < 0 || end < 0){
+        card.querySelector('#odoError').textContent = 'Enter both odometer readings.';
+        return;
+      }
+      if (end <= start){
+        card.querySelector('#odoError').textContent = 'Ending odometer must be greater than starting odometer.';
+        return;
+      }
+      saveOdometerEntry(dateKey, start, end, notes);
+      editingOdoKey = null;
+      renderHistory();
+    } else if (action === 'delete-odo'){
+      deletingOdoKey = dateKey;
+      editingOdoKey = null;
+      renderHistory();
+    } else if (action === 'cancel-odo-delete'){
+      deletingOdoKey = null;
+      renderHistory();
+    } else if (action === 'confirm-odo-delete'){
+      deleteOdometerEntry(dateKey);
+      deletingOdoKey = null;
+      renderHistory();
+    }
+  });
+
+  // ---------- add job for a date (new date, shown above history list) ----------
+  els.addJobDateBtn.addEventListener('click', () => {
+    els.addJobDateForm.style.display = '';
+    els.addJobDateBtn.style.display = 'none';
+    els.addDateInput.value = todayKey();
+    if (hasVal(els.gasPrice)) els.addGasPriceInput.value = els.gasPrice.value;
+    els.addJobDateError.textContent = '';
+  });
+
+  els.addJobCancelBtn.addEventListener('click', () => {
+    els.addJobDateForm.style.display = 'none';
+    els.addJobDateBtn.style.display = '';
+    els.addDateInput.value = '';
+    els.addPayoutInput.value = '';
+    els.addMilesInput.value = '';
+    els.addGasPriceInput.value = '';
+    els.addJobDateError.textContent = '';
+  });
+
+  els.addJobSaveBtn.addEventListener('click', () => {
+    const dateKey = els.addDateInput.value;
+    const payout = parseFloat(els.addPayoutInput.value);
+    const miles = parseFloat(els.addMilesInput.value);
+    const gasPriceRaw = els.addGasPriceInput.value;
+    const gasPrice = gasPriceRaw.trim() === '' ? null : parseFloat(gasPriceRaw);
+    if (!dateKey){
+      els.addJobDateError.textContent = 'Choose a date.';
+      return;
+    }
+    if (isNaN(miles) || miles <= 0 || isNaN(payout) || payout < 0){
+      els.addJobDateError.textContent = 'Enter a valid payout and mileage.';
+      return;
+    }
+    addJobToDate(dateKey, payout, miles, gasPrice, parseNum(els.mpg));
+    els.addJobDateForm.style.display = 'none';
+    els.addJobDateBtn.style.display = '';
+    els.addDateInput.value = '';
+    els.addPayoutInput.value = '';
+    els.addMilesInput.value = '';
+    els.addGasPriceInput.value = '';
+    els.addJobDateError.textContent = '';
+    renderHistory();
+  });
+
+  // ---------- tabs ----------
+  function showTab(tab){
+    const isCalc = tab === 'calc';
+    els.viewCalc.classList.toggle('active', isCalc);
+    els.viewHistory.classList.toggle('active', !isCalc);
+    els.tabCalcBtn.classList.toggle('active', isCalc);
+    els.tabHistoryBtn.classList.toggle('active', !isCalc);
+    if (!isCalc) renderHistory();
+  }
+
+  // ---------- core calculation ----------
+  function recalc(){
+    const payout = parseNum(els.payout);
+    const miles = parseNum(els.miles);
+    const time = parseNum(els.time);
+    const mpg = parseNum(els.mpg);
+    const gasPrice = parseNum(els.gasPrice);
+    const targetRaw = parseNum(els.target);
+    const target = isNaN(targetRaw) ? DEFAULT_TARGET : targetRaw;
+
+    const hasJobBasic = !isNaN(payout) && !isNaN(miles) && miles > 0;
+    const hasVehicle = !isNaN(mpg) && mpg > 0 && !isNaN(gasPrice) && gasPrice >= 0;
+    const hasMilesAndVehicle = !isNaN(miles) && miles > 0 && hasVehicle;
+
+    const grossPerMile = hasJobBasic ? payout / miles : NaN;
+    const gasCost = hasMilesAndVehicle ? (miles / mpg) * gasPrice : NaN;
+    const profitAfterGas = (hasJobBasic && hasVehicle) ? payout - gasCost : NaN;
+    const profitPerMile = (hasJobBasic && hasVehicle) ? profitAfterGas / miles : NaN;
+    const hourly = (hasJobBasic && hasVehicle && !isNaN(time) && time > 0) ? profitAfterGas / (time / 60) : NaN;
+    const minPayoutNeeded = hasMilesAndVehicle ? (target * miles) + gasCost : NaN;
+
+    // ---- numbers grid ----
+    if (!hasJobBasic){
+      setNum(els.outPayout, '\u2014', {dim:true});
+      setNum(els.outGas, '\u2014', {dim:true});
+      setNum(els.outProfit, '\u2014', {dim:true});
+      els.perMileLabel.textContent = 'Profit After Gas / Mile';
+      setNum(els.outPerMile, '\u2014', {dim:true});
+    } else if (!hasVehicle){
+      setNum(els.outPayout, fmtMoney(payout));
+      setNum(els.outGas, '\u2014', {dim:true});
+      setNum(els.outProfit, '\u2014', {dim:true});
+      els.perMileLabel.textContent = 'Gross $ / Mile';
+      setNum(els.outPerMile, fmtRate(grossPerMile));
+    } else {
+      setNum(els.outPayout, fmtMoney(payout));
+      setNum(els.outGas, fmtCost(gasCost));
+      setNum(els.outProfit, fmtMoney(profitAfterGas), {neg: profitAfterGas < 0});
+      els.perMileLabel.textContent = 'Profit After Gas / Mile';
+      setNum(els.outPerMile, fmtRate(profitPerMile), {neg: profitPerMile < 0});
+    }
+
+    // ---- hourly ----
+    if (!isNaN(hourly)){
+      els.hourlyRow.style.display = '';
+      els.outHourly.textContent = fmtMoney(hourly) + '/hr';
+      els.outHourly.classList.toggle('neg', hourly < 0);
+    } else {
+      els.hourlyRow.style.display = 'none';
+    }
+
+    // ---- minimum payout needed ----
+    if (hasMilesAndVehicle){
+      els.minPayoutBox.classList.remove('muted');
+      els.minPayoutText.innerHTML = "You'd need <b>" + fmtMoney(minPayoutNeeded) + "</b> to hit your " + fmtMoney(target) + "/mile target.";
+    } else {
+      els.minPayoutBox.classList.add('muted');
+      if (!hasVal(els.miles) || miles <= 0){
+        els.minPayoutText.textContent = "Enter this job's miles and your vehicle info to see the minimum payout you'd need.";
+      } else {
+        els.minPayoutText.textContent = 'Set your vehicle MPG and gas price to see the minimum payout you need.';
+      }
+    }
+
+    // ---- decision banner ----
+    els.banner.className = 'decision-banner';
+    els.decisionSub.classList.remove('loss');
+
+    if (!hasJobBasic){
+      els.banner.classList.add('pending');
+      els.emoji.innerHTML = '&#9898;';
+      els.decisionText.textContent = 'Enter a job';
+      els.decisionSub.textContent = 'Fill in payout and miles below to get a recommendation.';
+    } else if (!hasVehicle){
+      els.banner.classList.add('setup');
+      els.emoji.innerHTML = '&#9881;\uFE0F';
+      els.decisionText.textContent = 'Set up your vehicle';
+      els.decisionSub.textContent = 'Set your vehicle MPG and gas price to calculate profit after gas.';
+    } else if (profitAfterGas < 0){
+      els.banner.classList.add('skip');
+      els.emoji.innerHTML = '&#128308;';
+      els.decisionText.textContent = 'SKIP IT';
+      els.decisionSub.textContent = "You're losing money after gas.";
+      els.decisionSub.classList.add('loss');
+    } else if (profitPerMile >= target){
+      els.banner.classList.add('take');
+      els.emoji.innerHTML = '&#128994;';
+      els.decisionText.textContent = 'TAKE IT';
+      els.decisionSub.textContent = fmtRate(profitPerMile) + ' \u2014 above your ' + fmtMoney(target) + ' target.';
+    } else if (profitPerMile >= target * SKIP_RATIO){
+      els.banner.classList.add('maybe');
+      els.emoji.innerHTML = '&#128993;';
+      els.decisionText.textContent = 'MAYBE';
+      els.decisionSub.textContent = fmtRate(profitPerMile) + ' \u2014 below your ' + fmtMoney(target) + ' target.';
+    } else {
+      els.banner.classList.add('skip');
+      els.emoji.innerHTML = '&#128308;';
+      els.decisionText.textContent = 'SKIP IT';
+      els.decisionSub.textContent = fmtRate(profitPerMile) + ' \u2014 below your ' + fmtMoney(target) + ' target.';
+    }
+
+    // ---- gauge (secondary) ----
+    const skipT = target * SKIP_RATIO;
+    const gaugeMax = Math.max(target * 1.75, isNaN(profitPerMile) ? 0 : Math.abs(profitPerMile) * 1.15, 0.5);
+    const badPct = Math.min(100, Math.max(0, (skipT / gaugeMax) * 100));
+    const goodPct = Math.min(100, Math.max(0, (target / gaugeMax) * 100));
+    els.segBad.style.width = badPct + '%';
+    els.segOk.style.width = Math.max(0, goodPct - badPct) + '%';
+    els.segGood.style.width = Math.max(0, 100 - goodPct) + '%';
+
+    if (hasJobBasic && hasVehicle){
+      const needlePct = Math.min(100, Math.max(0, (profitPerMile / gaugeMax) * 100));
+      els.needle.style.left = needlePct + '%';
+      els.needle.classList.add('show');
+      els.gauge.classList.add('active');
+    } else {
+      els.needle.classList.remove('show');
+      els.gauge.classList.remove('active');
+    }
+  }
+
+  // job fields: recalc only, never saved
+  [els.payout, els.miles, els.time].forEach(el => el.addEventListener('input', recalc));
+
+  // vehicle/target fields: recalc + persist
+  [els.mpg, els.gasPrice, els.target].forEach(el => {
+    el.addEventListener('input', () => { recalc(); saveSettings(); });
+  });
+
+  function resetJobFields(){
+    els.payout.value = '';
+    els.miles.value = '';
+    els.time.value = '';
+    recalc();
+    els.payout.focus();
+  }
+
+  els.takenBtn.addEventListener('click', () => {
+    const payout = parseNum(els.payout);
+    const miles = parseNum(els.miles);
+    if (isNaN(payout) || isNaN(miles) || miles <= 0){
+      els.savedFlash.textContent = "Enter payout and miles first.";
+      els.savedFlash.style.color = 'var(--bad)';
+      return;
+    }
+    recordJobTaken(payout, miles, parseNum(els.gasPrice), parseNum(els.mpg));
+    els.savedFlash.textContent = 'Saved to history \u2014 ' + fmtMoney(payout) + ', ' + miles.toFixed(1) + ' mi.';
+    els.savedFlash.style.color = 'var(--good)';
+    resetJobFields();
+  });
+
+  els.declineBtn.addEventListener('click', () => {
+    els.savedFlash.textContent = '';
+    resetJobFields();
+  });
+
+  els.tabCalcBtn.addEventListener('click', () => showTab('calc'));
+  els.tabHistoryBtn.addEventListener('click', () => showTab('history'));
+
+  // ==================== SCREENSHOT ANALYZER (on-device OCR) ====================
+  // Uses Tesseract.js (WebAssembly OCR that runs entirely in the browser — no
+  // server, no API key, no per-scan cost). All parsing below is a set of
+  // simple heuristics over the raw recognized text; the user always confirms
+  // or edits the detected numbers before they're used.
+
+  function closeScanModal(){
+    els.scanModal.classList.remove('show');
+    els.scanSheet.innerHTML = '';
+  }
+
+  function renderScanLoading(){
+    els.scanSheet.innerHTML =
+      '<div class="scan-loading">' +
+        '<div class="spinner"></div>' +
+        '<div class="msg" id="scanLoadingMsg">Reading screenshot&hellip;</div>' +
+      '</div>';
+    els.scanModal.classList.add('show');
+  }
+
+  function setScanLoadingMsg(text){
+    const el = document.getElementById('scanLoadingMsg');
+    if (el) el.textContent = text;
+  }
+
+  // Pull every "$12.34"-style amount out of the raw OCR text.
+  function extractDollarAmounts(text){
+    const matches = text.match(/\$\s?\d{1,3}(?:,\d{3})*\.\d{2}/g) || [];
+    return matches.map(m => parseFloat(m.replace(/[$,\s]/g, ''))).filter(n => !isNaN(n) && n > 0);
+  }
+
+  // Pull every "4.2 mi" / "4.2 mile(s)"-style distance out of the raw OCR text.
+  function extractMileValues(text){
+    const matches = text.match(/\d{1,3}(?:\.\d+)?\s*(?:mi|mile|miles)\b/gi) || [];
+    return matches.map(m => parseFloat(m)).filter(n => !isNaN(n) && n > 0);
+  }
+
+  // Turn raw OCR text into a best-guess payout + miles, plus a confidence status.
+  function parseOrderFromText(rawText){
+    const dollars = extractDollarAmounts(rawText);
+    const miles = extractMileValues(rawText);
+
+    // Prefer a dollar amount clearly labeled as the total (DoorDash's offer
+    // screen shows this as "$12.25 Guaranteed (incl. tips)"). Fall back to
+    // the largest dollar figure on screen if no such label is found, since
+    // the total payout is almost always the biggest number shown.
+    let payout = null;
+    const labeledMatch = rawText.match(/\$\s?(\d{1,3}(?:,\d{3})*\.\d{2})\s*\n?\s*(?:guarantee|total|earn)/i);
+    if (labeledMatch) payout = parseFloat(labeledMatch[1].replace(/,/g, ''));
+    else if (dollars.length) payout = Math.max(...dollars);
+
+    const totalMiles = miles.length ? Math.max(...miles) : null;
+
+    let status = 'success';
+    if (payout === null && totalMiles === null) status = 'failed';
+    else if (payout === null || totalMiles === null || dollars.length > 1 || miles.length > 1) status = 'review';
+    if (labeledMatch) status = (totalMiles === null || miles.length > 1) ? 'review' : 'success';
+
+    return { payout, miles: totalMiles, status, rawText };
+  }
+
+  function renderScanConfirm(result){
+    const statusLabel = { success: 'Success', review: 'Needs review', failed: 'Failed' }[result.status];
+    const statusClass = { success: 'success', review: 'review', failed: 'failed' }[result.status];
+
+    const payoutVal = result.payout !== null ? result.payout.toFixed(2) : '';
+    const milesVal = result.miles !== null ? result.miles.toFixed(1) : '';
+
+    let subMsg = 'Confirm these numbers, or edit them, before checking the order.';
+    let subClass = '';
+    if (result.status === 'failed'){
+      subMsg = "Couldn't confidently detect the order details. Please enter them manually.";
+      subClass = 'err';
+    } else if (result.status === 'review'){
+      subMsg = "Couldn't confidently detect the order details. Please check the values below.";
+      subClass = 'warn';
+    }
+
+    els.scanSheet.innerHTML =
+      '<h3>Detected Order</h3>' +
+      '<span class="status-pill ' + statusClass + '">' + statusLabel + '</span>' +
+      '<div class="modal-sub ' + subClass + '">' + subMsg + '</div>' +
+      '<div class="field">' +
+        '<label for="scanPayoutInput">Payout</label>' +
+        '<div class="input-wrap"><span class="prefix">$</span>' +
+          '<input id="scanPayoutInput" type="number" inputmode="decimal" step="0.01" min="0" value="' + payoutVal + '" placeholder="0.00">' +
+        '</div>' +
+      '</div>' +
+      '<div class="field">' +
+        '<label for="scanMilesInput">Total miles</label>' +
+        '<div class="input-wrap">' +
+          '<input id="scanMilesInput" type="number" inputmode="decimal" step="0.1" min="0" value="' + milesVal + '" placeholder="0.0">' +
+          '<span class="prefix">mi</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="form-error" id="scanConfirmError"></div>' +
+      '<div class="modal-actions">' +
+        '<button class="decline-btn" id="scanCancelBtn">Cancel</button>' +
+        '<button class="take-btn" id="scanConfirmBtn">Check Order</button>' +
+      '</div>' +
+      '<button class="debug-toggle" id="scanDebugToggle">Show raw scan details</button>' +
+      '<div class="debug-panel" id="scanDebugPanel">' +
+        'Screenshot selected: YES\n' +
+        'OCR status: ' + statusLabel.toUpperCase() + '\n\n' +
+        'Detected payout: ' + (result.payout !== null ? '$' + result.payout.toFixed(2) : '(none)') + '\n' +
+        'Detected miles: ' + (result.miles !== null ? result.miles.toFixed(1) : '(none)') + '\n\n' +
+        'Raw detected text:\n' + (result.rawText.trim() || '(empty)') +
+      '</div>';
+
+    els.scanModal.classList.add('show');
+
+    document.getElementById('scanDebugToggle').addEventListener('click', () => {
+      document.getElementById('scanDebugPanel').classList.toggle('show');
+    });
+    document.getElementById('scanCancelBtn').addEventListener('click', closeScanModal);
+    document.getElementById('scanConfirmBtn').addEventListener('click', () => {
+      const payout = parseFloat(document.getElementById('scanPayoutInput').value);
+      const miles = parseFloat(document.getElementById('scanMilesInput').value);
+      const errEl = document.getElementById('scanConfirmError');
+      if (isNaN(payout) || payout < 0 || isNaN(miles) || miles <= 0){
+        errEl.textContent = 'Enter a valid payout and mileage.';
+        return;
+      }
+      els.payout.value = payout.toFixed(2);
+      els.miles.value = miles;
+      recalc();
+      closeScanModal();
+      els.payout.closest('.decision-card') && document.querySelector('.decision-card').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  function renderScanFailedToLoad(message, debugDetail){
+    els.scanSheet.innerHTML =
+      '<h3>Couldn&rsquo;t read that screenshot</h3>' +
+      '<div class="modal-sub err">' + message + ' You can enter the payout and miles manually instead.</div>' +
+      '<div class="modal-actions">' +
+        '<button class="decline-btn" id="scanCancelBtn2">Close</button>' +
+      '</div>' +
+      (debugDetail ?
+        '<button class="debug-toggle" id="scanDebugToggle2">Show error details</button>' +
+        '<div class="debug-panel" id="scanDebugPanel2">' + debugDetail + '</div>'
+        : '');
+    els.scanModal.classList.add('show');
+    document.getElementById('scanCancelBtn2').addEventListener('click', closeScanModal);
+    const dbgBtn = document.getElementById('scanDebugToggle2');
+    if (dbgBtn){
+      dbgBtn.addEventListener('click', () => {
+        document.getElementById('scanDebugPanel2').classList.toggle('show');
+      });
+    }
+  }
+
+  // Waits for the Tesseract library to become available (it loads from a CDN
+  // <script> tag, so on a slow connection it may not be ready the instant the
+  // user taps the button). Resolves false if it never shows up.
+  function waitForTesseract(timeoutMs){
+    return new Promise(resolve => {
+      if (typeof Tesseract !== 'undefined') return resolve(true);
+      const start = Date.now();
+      const iv = setInterval(() => {
+        if (typeof Tesseract !== 'undefined'){
+          clearInterval(iv);
+          resolve(true);
+        } else if (Date.now() - start > timeoutMs){
+          clearInterval(iv);
+          resolve(false);
+        }
+      }, 200);
+    });
+  }
+
+  let scanWorker = null;
+  async function getScanWorker(){
+    if (scanWorker) return scanWorker;
+    scanWorker = await Tesseract.createWorker('eng', 1, {
+      logger: m => {
+        if (m.status === 'recognizing text' && typeof m.progress === 'number'){
+          setScanLoadingMsg('Recognizing text\u2026 ' + Math.round(m.progress * 100) + '%');
+        } else if (m.status){
+          setScanLoadingMsg(m.status.replace(/_/g, ' ') + '\u2026');
+        }
+      }
+    });
+    return scanWorker;
+  }
+
+  els.scanBtn.addEventListener('click', () => {
+    els.scanFileInput.value = '';
+    els.scanFileInput.click();
+  });
+
+  els.scanFileInput.addEventListener('change', async () => {
+    const file = els.scanFileInput.files && els.scanFileInput.files[0];
+    if (!file) return;
+
+    renderScanLoading();
+
+    try {
+      setScanLoadingMsg('Loading on-device text reader\u2026');
+      const ready = await waitForTesseract(15000);
+      if (!ready){
+        renderScanFailedToLoad(
+          'The on-device text reader couldn\u2019t load — this usually means the browser blocked the one-time download.',
+          'Tesseract library never became available after 15s.\nTry opening this file directly in Safari/Chrome (not an in-app preview) and make sure you have an internet connection for this one-time download.'
+        );
+        return;
+      }
+      setScanLoadingMsg('Reading screenshot\u2026');
+      const worker = await getScanWorker();
+      const { data } = await worker.recognize(file);
+      const result = parseOrderFromText(data.text || '');
+      renderScanConfirm(result);
+    } catch (err){
+      renderScanFailedToLoad(
+        'Something went wrong reading that image.',
+        'Error: ' + (err && (err.message || err.toString ? err.toString() : String(err)))
+      );
+    }
+  });
+
+  // ============================================================
+  // Account / cloud sync (Firebase Auth + Firestore)
+  // Real email + password accounts, so Firebase's built-in
+  // password reset email works natively (no custom backend needed).
+  // ============================================================
+  let currentUser = null;
+  let lastSyncAt = null;   // Date of last successful cloud sync
+  let lastSyncOk = null;   // null = no attempt yet, true/false = outcome of the most recent attempt
+
+  function validEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim()); }
+  function displayNameFor(user){
+    return user.displayName || (user.email ? user.email.split('@')[0] : 'driver');
+  }
+  function fmtSyncTime(d){
+    return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+  }
+
+  function updateAccountBar(){
+    if (currentUser){
+      let syncLine;
+      if (lastSyncOk === false){
+        syncLine = '<span style="color:var(--bad);">Sync failed \u2014 saved on this device only</span>';
+      } else if (lastSyncAt){
+        syncLine = 'Synced \u2022 last at ' + fmtSyncTime(lastSyncAt);
+      } else {
+        syncLine = 'Synced to the cloud';
+      }
+      els.accountStatus.innerHTML = 'Signed in as <b>' + displayNameFor(currentUser) + '</b><div class="account-sync-note">' + syncLine + '</div>';
+      els.accountBtn.textContent = 'Account';
+    } else {
+      els.accountStatus.innerHTML = 'Not signed in<div class="account-sync-note">Data is only on this device</div>';
+      els.accountBtn.textContent = 'Sign In / Sign Up';
+    }
+  }
+
+  function closeAccountModal(){
+    els.accountModal.classList.remove('show');
+    els.accountSheet.innerHTML = '';
+  }
+
+  function friendlyAuthError(err){
+    const code = err && err.code;
+    if (code === 'auth/email-already-in-use') return 'An account already exists with that email.';
+    if (code === 'auth/invalid-email') return 'Enter a valid email address.';
+    if (code === 'auth/wrong-password' || code === 'auth/user-not-found' || code === 'auth/invalid-credential') return 'Incorrect email or password.';
+    if (code === 'auth/weak-password') return 'Password must be at least 8 characters, with a lowercase letter and a number.';
+    if (code === 'auth/too-many-requests') return 'Too many attempts. Please wait a bit and try again.';
+    return 'Something went wrong. Please try again.';
+  }
+
+  function syncToCloud(){
+    if (!currentUser || !firebaseReady) return Promise.resolve();
+    let settings = {}, history = {}, mileageLog = {};
+    try { settings = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e){}
+    try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '{}'); } catch(e){}
+    try { mileageLog = JSON.parse(localStorage.getItem(MILEAGE_LOG_KEY) || '{}'); } catch(e){}
+    return firebase.firestore().collection('users').doc(currentUser.uid)
+      .set({ settings, history, mileageLog, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+      .then(() => { lastSyncAt = new Date(); lastSyncOk = true; updateAccountBar(); })
+      .catch(e => {
+        console.warn('Cloud sync failed:', e);
+        lastSyncOk = false;
+        updateAccountBar();
+      });
+  }
+
+  function pullCloudData(uid){
+    return firebase.firestore().collection('users').doc(uid).get().then(doc => {
+      if (doc.exists){
+        const data = doc.data();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data.settings || {}));
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(data.history || {}));
+        localStorage.setItem(MILEAGE_LOG_KEY, JSON.stringify(data.mileageLog || {}));
+        lastSyncAt = new Date();
+        lastSyncOk = true;
+      } else {
+        // brand-new account, nothing in the cloud yet — adopt whatever's on this device
+        return syncToCloud();
+      }
+    }).catch(e => {
+      console.warn('Cloud pull failed:', e);
+      lastSyncOk = false;
+    });
+  }
+
+  function renderAccountModal(mode, errorMsg){
+    mode = mode || 'signin';
+
+    if (currentUser){
+      els.accountSheet.innerHTML =
+        '<h3>Account</h3>' +
+        '<div class="modal-sub">Signed in as <b>' + displayNameFor(currentUser) + '</b>. Settings and job history sync automatically.</div>' +
+        '<div class="modal-actions"><button class="decline-btn" id="acctSignOutBtn">Sign Out</button><button class="take-btn" id="acctCloseBtn">Done</button></div>';
+      els.accountModal.classList.add('show');
+      $('acctCloseBtn').addEventListener('click', closeAccountModal);
+      $('acctSignOutBtn').addEventListener('click', () => { firebase.auth().signOut(); closeAccountModal(); });
+      return;
+    }
+
+    if (!firebaseReady){
+      els.accountSheet.innerHTML =
+        '<h3>Accounts aren&rsquo;t set up yet</h3>' +
+        '<div class="modal-sub err">This copy of the app hasn&rsquo;t been connected to a backend, so cloud accounts aren&rsquo;t available yet. Your data still saves on this device.</div>' +
+        '<div class="modal-actions"><button class="decline-btn" id="acctCloseBtn2">Close</button></div>';
+      els.accountModal.classList.add('show');
+      $('acctCloseBtn2').addEventListener('click', closeAccountModal);
+      return;
+    }
+
+    if (mode === 'reset'){
+      els.accountSheet.innerHTML =
+        '<h3>Reset Password</h3>' +
+        '<div class="modal-sub">Enter your account email and we&rsquo;ll send a reset link.</div>' +
+        '<div class="field"><label for="acctResetEmail">Email</label><div class="input-wrap"><input id="acctResetEmail" type="email" autocapitalize="none" autocorrect="off" placeholder="you@example.com"></div></div>' +
+        '<div class="form-error" id="acctError">' + (errorMsg || '') + '</div>' +
+        '<div class="modal-actions">' +
+          '<button class="decline-btn" id="acctBackBtn">Back</button>' +
+          '<button class="take-btn" id="acctResetSubmitBtn">Send Reset Link</button>' +
+        '</div>';
+      els.accountModal.classList.add('show');
+      $('acctBackBtn').addEventListener('click', () => renderAccountModal('signin'));
+      $('acctResetSubmitBtn').addEventListener('click', () => {
+        const email = $('acctResetEmail').value.trim();
+        if (!validEmail(email)){
+          renderAccountModal('reset', 'Enter a valid email address.');
+          return;
+        }
+        const btn = $('acctResetSubmitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Sending\u2026';
+        firebase.auth().sendPasswordResetEmail(email)
+          .then(() => {
+            els.accountSheet.innerHTML =
+              '<h3>Check your email</h3>' +
+              '<div class="modal-sub">If an account exists for ' + email + ', a reset link is on its way.</div>' +
+              '<div class="modal-actions"><button class="take-btn" id="acctDoneBtn2">Done</button></div>';
+            $('acctDoneBtn2').addEventListener('click', () => renderAccountModal('signin'));
+          })
+          .catch(err => renderAccountModal('reset', friendlyAuthError(err)));
+      });
+      return;
+    }
+
+    els.accountSheet.innerHTML =
+      '<h3>' + (mode === 'signup' ? 'Create Account' : 'Sign In') + '</h3>' +
+      '<div class="account-tabs">' +
+        '<button class="' + (mode === 'signin' ? 'active' : '') + '" id="acctTabSignin">Sign In</button>' +
+        '<button class="' + (mode === 'signup' ? 'active' : '') + '" id="acctTabSignup">Sign Up</button>' +
+      '</div>' +
+      (mode === 'signup' ?
+        '<div class="field"><label for="acctDisplayName">Display name <span style="color:var(--paper-faint);">(optional)</span></label><div class="input-wrap"><input id="acctDisplayName" type="text" placeholder="e.g. Alex"></div></div>' : '') +
+      '<div class="field"><label for="acctEmail">Email</label><div class="input-wrap"><input id="acctEmail" type="email" autocapitalize="none" autocorrect="off" placeholder="you@example.com"></div></div>' +
+      '<div class="field"><label for="acctPassword">Password</label><div class="input-wrap"><input id="acctPassword" type="password" placeholder="' + (mode === 'signup' ? 'At least 8 characters, with a letter and a number' : 'Your password') + '"></div></div>' +
+      '<div class="form-error" id="acctError">' + (errorMsg || '') + '</div>' +
+      '<div class="modal-actions">' +
+        '<button class="decline-btn" id="acctCancelBtn">Cancel</button>' +
+        '<button class="take-btn" id="acctSubmitBtn">' + (mode === 'signup' ? 'Create Account' : 'Sign In') + '</button>' +
+      '</div>' +
+      (mode === 'signin' ?
+        '<button class="link-btn" id="acctForgotBtn" style="display:block;margin:12px auto 0;">Forgot password?</button>' +
+        '<div class="account-sync-note" style="margin-top:6px;text-align:center;">Signing in replaces this device&rsquo;s data with your saved cloud data.</div>'
+        : '');
+
+    els.accountModal.classList.add('show');
+    $('acctTabSignin').addEventListener('click', () => renderAccountModal('signin'));
+    $('acctTabSignup').addEventListener('click', () => renderAccountModal('signup'));
+    $('acctCancelBtn').addEventListener('click', closeAccountModal);
+    $('acctSubmitBtn').addEventListener('click', () => handleAccountSubmit(mode));
+    if (mode === 'signin') $('acctForgotBtn').addEventListener('click', () => renderAccountModal('reset'));
+  }
+
+  function handleAccountSubmit(mode){
+    const email = $('acctEmail').value.trim();
+    const password = $('acctPassword').value;
+    const displayName = mode === 'signup' ? $('acctDisplayName').value.trim() : '';
+    if (!validEmail(email)){
+      renderAccountModal(mode, 'Enter a valid email address.');
+      return;
+    }
+    if (mode === 'signup'){
+      if (!password || password.length < 8){
+        renderAccountModal(mode, 'Password must be at least 8 characters.');
+        return;
+      }
+      if (!/[a-z]/.test(password) || !/[0-9]/.test(password)){
+        renderAccountModal(mode, 'Password must include at least one lowercase letter and one number.');
+        return;
+      }
+    } else if (!password){
+      renderAccountModal(mode, 'Enter your password.');
+      return;
+    }
+    const submitBtn = $('acctSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Please wait\u2026';
+
+    if (mode === 'signup'){
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then(cred => {
+          const name = displayName || email.split('@')[0];
+          return cred.user.updateProfile({ displayName: name }).then(() => { currentUser = cred.user; });
+        })
+        .then(() => syncToCloud())
+        .then(() => { updateAccountBar(); closeAccountModal(); })
+        .catch(err => renderAccountModal('signup', friendlyAuthError(err)));
+    } else {
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(cred => pullCloudData(cred.user.uid))
+        .then(() => {
+          updateAccountBar();
+          closeAccountModal();
+          loadSettings();
+          recalc();
+          renderHistory();
+        })
+        .catch(err => renderAccountModal('signin', friendlyAuthError(err)));
+    }
+  }
+
+  els.accountBtn.addEventListener('click', () => renderAccountModal(currentUser ? undefined : 'signin'));
+
+  if (firebaseReady){
+    firebase.auth().onAuthStateChanged(user => {
+      currentUser = user;
+      updateAccountBar();
+      if (user) pullCloudData(user.uid).then(() => { loadSettings(); recalc(); renderHistory(); });
+    });
+  } else {
+    updateAccountBar();
+  }
+
+  loadSettings();
+  recalc();
+})();
+</script>
+</body>
+</html>
