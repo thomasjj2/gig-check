@@ -1179,19 +1179,30 @@
   // and workplace/carrier networks block those generic CDN domains outright,
   // which made the scanner fail with a timeout even though nothing was wrong
   // with the app itself. Same-origin files sidestep that entirely.
-  const TESSERACT_VENDOR_PATH = '/vendor/tesseract';
-  let tesseractLoadPromise = null;
   function ensureTesseractLoaded(){
     if (typeof Tesseract !== 'undefined') return Promise.resolve();
-    if (tesseractLoadPromise) return tesseractLoadPromise;
-    tesseractLoadPromise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[data-tesseract-loader]');
+      if (existing) {
+        existing.addEventListener('load', resolve, {once:true});
+        existing.addEventListener('error', () => reject(new Error('Could not load Tesseract.js.')), {once:true});
+        return;
+      }
       const s = document.createElement('script');
-      s.src = TESSERACT_VENDOR_PATH + '/tesseract.min.js';
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error('Could not load the on-device text reader from ' + s.src + '. Check your connection and try again.'));
+      s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      s.dataset.tesseractLoader = '1';
+      s.onload = resolve;
+      s.onerror = () => {
+        const fallback = document.createElement('script');
+        fallback.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+        fallback.dataset.tesseractLoader = '1';
+        fallback.onload = resolve;
+        fallback.onerror = () => reject(new Error('Could not load Tesseract.js.'));
+        document.head.appendChild(fallback);
+      };
+      s.onload = resolve;
       document.head.appendChild(s);
     });
-    return tesseractLoadPromise;
   }
 </script>
 <script>
@@ -2213,10 +2224,6 @@
     if (scanWorker) return scanWorker;
     await ensureTesseractLoaded();
     scanWorker = await Tesseract.createWorker('eng', 1, {
-      workerPath: TESSERACT_VENDOR_PATH + '/worker.min.js',
-      corePath: TESSERACT_VENDOR_PATH + '/tesseract-core-lstm.js',
-      langPath: TESSERACT_VENDOR_PATH,
-      gzip: true,
       logger: m => {
         if (m.status === 'recognizing text' && typeof m.progress === 'number'){
           setScanLoadingMsg('Recognizing text\u2026 ' + Math.round(m.progress * 100) + '%');
@@ -2229,11 +2236,6 @@
   }
 
   els.scanBtn.addEventListener('click', () => {
-    // Kick off the (self-hosted) Tesseract script load right when the user
-    // taps the scan button, instead of only discovering later that nothing
-    // ever triggered it. waitForTesseract() below only polls for the global
-    // to appear — it never starts the load itself, so this call is required.
-    ensureTesseractLoaded().catch(() => { /* surfaced via waitForTesseract timeout below */ });
     els.scanFileInput.value = '';
     els.scanFileInput.click();
   });
