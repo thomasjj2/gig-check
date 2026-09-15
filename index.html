@@ -1173,22 +1173,22 @@
   // Tesseract.js loads lazily, only when someone actually uses the scan
   // feature, instead of on every page load. This keeps first-load time
   // fast for the majority of visits that never touch the scanner.
+  //
+  // Self-hosted under /vendor/tesseract/ (same origin as gigcheck.app) instead
+  // of pulling from cdn.jsdelivr.net / unpkg.com at request time. Some wifi
+  // and workplace/carrier networks block those generic CDN domains outright,
+  // which made the scanner fail with a timeout even though nothing was wrong
+  // with the app itself. Same-origin files sidestep that entirely.
+  const TESSERACT_VENDOR_PATH = '/vendor/tesseract';
   let tesseractLoadPromise = null;
   function ensureTesseractLoaded(){
     if (typeof Tesseract !== 'undefined') return Promise.resolve();
     if (tesseractLoadPromise) return tesseractLoadPromise;
     tesseractLoadPromise = new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      s.src = TESSERACT_VENDOR_PATH + '/tesseract.min.js';
       s.onload = () => resolve();
-      s.onerror = () => {
-        // primary CDN failed (network policy, ad blocker, etc.) — try unpkg as a fallback
-        const s2 = document.createElement('script');
-        s2.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
-        s2.onload = () => resolve();
-        s2.onerror = () => reject(new Error('Could not load the scanner. Check your connection and try again.'));
-        document.head.appendChild(s2);
-      };
+      s.onerror = () => reject(new Error('Could not load the on-device text reader from ' + s.src + '. Check your connection and try again.'));
       document.head.appendChild(s);
     });
     return tesseractLoadPromise;
@@ -2213,6 +2213,10 @@
     if (scanWorker) return scanWorker;
     await ensureTesseractLoaded();
     scanWorker = await Tesseract.createWorker('eng', 1, {
+      workerPath: TESSERACT_VENDOR_PATH + '/worker.min.js',
+      corePath: TESSERACT_VENDOR_PATH + '/tesseract-core-lstm.js',
+      langPath: TESSERACT_VENDOR_PATH,
+      gzip: true,
       logger: m => {
         if (m.status === 'recognizing text' && typeof m.progress === 'number'){
           setScanLoadingMsg('Recognizing text\u2026 ' + Math.round(m.progress * 100) + '%');
@@ -2240,8 +2244,8 @@
       const ready = await waitForTesseract(15000);
       if (!ready){
         renderScanFailedToLoad(
-          'The on-device text reader couldn\u2019t load — this usually means the browser blocked the one-time download.',
-          'Tesseract library never became available after 15s.\nTry opening this file directly in Safari/Chrome (not an in-app preview) and make sure you have an internet connection for this one-time download.'
+          'The on-device text reader couldn\u2019t load — check your internet connection and try again.',
+          'Tesseract library never became available after 15s while loading from ' + TESSERACT_VENDOR_PATH + '/tesseract.min.js.'
         );
         return;
       }
