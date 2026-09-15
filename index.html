@@ -2229,6 +2229,11 @@
   }
 
   els.scanBtn.addEventListener('click', () => {
+    // Kick off the (self-hosted) Tesseract script load right when the user
+    // taps the scan button, instead of only discovering later that nothing
+    // ever triggered it. waitForTesseract() below only polls for the global
+    // to appear — it never starts the load itself, so this call is required.
+    ensureTesseractLoaded().catch(() => { /* surfaced via waitForTesseract timeout below */ });
     els.scanFileInput.value = '';
     els.scanFileInput.click();
   });
@@ -2241,6 +2246,9 @@
 
     try {
       setScanLoadingMsg('Loading on-device text reader\u2026');
+      // Safety net in case someone reaches this handler without the click
+      // handler having fired (e.g. programmatic file selection).
+      ensureTesseractLoaded().catch(() => {});
       const ready = await waitForTesseract(15000);
       if (!ready){
         renderScanFailedToLoad(
