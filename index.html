@@ -3,31 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Gig Check</title>
+<title>Gig Check — Should I Take This Gig? Free Payout &amp; Profit Calculator</title>
+<meta name="description" content="Gig Check tells you whether a DoorDash order is worth taking. Enter or screenshot an offer and instantly see profit after gas, per-mile pay, and estimated hourly rate — free, no sign-up required.">
+<link rel="canonical" href="https://gigcheck.app/">
+
+<!-- Open Graph / social preview -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://gigcheck.app/">
+<meta property="og:title" content="Gig Check — Should I Take This Gig?">
+<meta property="og:description" content="Free profit calculator for DoorDash drivers. Screenshot any offer and instantly see profit after gas, per-mile pay, and estimated hourly rate.">
+<meta property="og:image" content="https://gigcheck.app/og-image.png">
+<meta property="og:site_name" content="Gig Check">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gig Check — Should I Take This Gig?">
+<meta name="twitter:description" content="Free profit calculator for DoorDash drivers. Screenshot any offer and instantly see profit after gas, per-mile pay, and estimated hourly rate.">
+<meta name="twitter:image" content="https://gigcheck.app/og-image.png">
+
+<meta name="theme-color" content="#0D0D0D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%230D0D0D'/%3E%3Ctext x='32' y='44' font-family='Arial,sans-serif' font-size='34' font-weight='800' fill='%235B4FE8' text-anchor='middle'%3EG%3C/text%3E%3C/svg%3E">
+
+<!-- Structured data: tells Google what this page/app is -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Gig Check",
+  "url": "https://gigcheck.app/",
+  "description": "Gig Check tells you whether a DoorDash order is worth taking. Enter or screenshot an offer and instantly see profit after gas, per-mile pay, and estimated hourly rate.",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any (Web)",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I know if a delivery gig is worth taking?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Enter the payout and total miles for the offer into Gig Check, or upload a screenshot of the offer and let it read the numbers automatically. Gig Check calculates your estimated gas cost, profit after gas, profit per mile, and estimated hourly rate, then gives you a Skip, Maybe, or Take recommendation based on your own target profit per mile."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What counts as a good profit per mile for gig delivery?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It depends on your vehicle and cost of gas, which is why Gig Check lets you set your own minimum profit-per-mile target rather than using a fixed number. Many drivers use somewhere between $1 and $2 profit per mile after gas as a starting point, then adjust based on their own vehicle's fuel efficiency and expenses."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Gig Check work with gig apps other than DoorDash?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Right now, Gig Check's screenshot scanner is built and tested specifically for DoorDash offers. You can still use the manual payout/miles entry fields for any gig platform, and screenshot support for other apps is planned."
+      }
+    }
+  ]
+}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#15171B;
-    --panel:#1D2025;
-    --panel-2:#22262C;
-    --hair:#33383F;
-    --paper:#F1EFE9;
-    --paper-dim:#A9ACAF;
-    --paper-faint:#6C7075;
-    --accent:#E0A94A;
-    --good:#5FA777;
-    --ok:#E0A94A;
-    --bad:#D9645A;
-    --radius:10px;
+    --ink:#0D0D0D;
+    --panel:#1A1A1A;
+    --panel-2:#242424;
+    --hair:#333333;
+    --paper:#FFFFFF;
+    --paper-dim:#B8B8B8;
+    --paper-faint:#7A7A7A;
+    --accent:#5B4FE8;
+    --accent-dim:rgba(91,79,232,0.14);
+    --good:#3DB35C;
+    --ok:#FFB93D;
+    --bad:#FF5252;
+    --radius:20px;
+    --radius-sm:14px;
+    --radius-pill:999px;
   }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html,body{ margin:0; padding:0; }
   body{
     background:var(--ink);
     color:var(--paper);
-    font-family:'Space Grotesk',system-ui,sans-serif;
+    font-family:'Plus Jakarta Sans',system-ui,sans-serif;
     min-height:100vh;
     display:flex;
     justify-content:center;
@@ -39,40 +112,40 @@
     display:flex;
     align-items:baseline;
     justify-content:space-between;
-    margin:6px 4px 16px;
+    margin:6px 4px 18px;
   }
-  header h1{ font-size:20px; font-weight:700; margin:0; letter-spacing:0.01em; }
-  header .tag{ font-size:12px; color:var(--paper-dim); }
+  header h1{ font-size:24px; font-weight:800; margin:0; letter-spacing:-0.02em; }
+  header .tag{ font-size:12.5px; color:var(--paper-dim); font-weight:500; }
 
   /* ---------- Decision card ---------- */
   .decision-card{
     background:var(--panel);
     border:1px solid var(--hair);
-    border-radius:var(--radius);
-    padding:20px 18px 18px;
-    margin-bottom:14px;
+    border-radius:24px;
+    padding:22px 20px 20px;
+    margin-bottom:16px;
   }
 
   .decision-banner{
     display:flex;
     align-items:center;
-    gap:10px;
-    padding:14px 16px;
-    border-radius:9px;
-    margin-bottom:8px;
+    gap:12px;
+    padding:18px 20px;
+    border-radius:var(--radius-sm);
+    margin-bottom:10px;
   }
-  .decision-banner .emoji{ font-size:24px; line-height:1; }
-  .decision-banner .text{ font-size:21px; font-weight:700; letter-spacing:0.01em; }
-  .decision-banner.pending{ background:rgba(169,172,175,0.08); border:1px solid var(--hair); }
+  .decision-banner .emoji{ font-size:26px; line-height:1; }
+  .decision-banner .text{ font-size:22px; font-weight:800; letter-spacing:-0.01em; }
+  .decision-banner.pending{ background:var(--panel-2); border:1px solid var(--hair); }
   .decision-banner.pending .text{ color:var(--paper-dim); }
-  .decision-banner.setup{ background:rgba(224,169,74,0.10); border:1px solid rgba(224,169,74,0.30); }
+  .decision-banner.setup{ background:rgba(255,185,61,0.12); border:1px solid rgba(255,185,61,0.35); }
   .decision-banner.setup .text{ color:var(--ok); }
-  .decision-banner.take{ background:rgba(95,167,119,0.14); border:1px solid rgba(95,167,119,0.40); }
-  .decision-banner.take .text{ color:var(--good); }
-  .decision-banner.maybe{ background:rgba(224,169,74,0.14); border:1px solid rgba(224,169,74,0.40); }
+  .decision-banner.take{ background:var(--good); border:1px solid var(--good); }
+  .decision-banner.take .text{ color:#0D0D0D; }
+  .decision-banner.maybe{ background:rgba(255,185,61,0.16); border:1px solid rgba(255,185,61,0.45); }
   .decision-banner.maybe .text{ color:var(--ok); }
-  .decision-banner.skip{ background:rgba(217,100,90,0.14); border:1px solid rgba(217,100,90,0.40); }
-  .decision-banner.skip .text{ color:var(--bad); }
+  .decision-banner.skip{ background:var(--accent); border:1px solid var(--accent); }
+  .decision-banner.skip .text{ color:#FFFFFF; }
 
   .decision-sub{
     font-size:13.5px;
@@ -86,69 +159,76 @@
   .numbers-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:14px 10px;
+    gap:12px 10px;
     margin-bottom:4px;
   }
-  .num-item .k{ font-size:11.5px; color:var(--paper-dim); margin-bottom:3px; }
-  .num-item .v{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:19px;
-    font-weight:600;
-    font-variant-numeric:tabular-nums;
+  .num-item{
+    background:var(--panel-2);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
   }
-  .num-item .v.dim{ color:var(--paper-faint); font-weight:500; }
+  .num-item .k{ font-size:11.5px; color:var(--paper-dim); margin-bottom:4px; font-weight:600; }
+  .num-item .v{
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:19px;
+    font-weight:700;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-0.01em;
+  }
+  .num-item .v.dim{ color:var(--paper-faint); font-weight:600; }
   .num-item .v.neg{ color:var(--bad); }
 
   .hourly-row{
     margin-top:14px;
-    padding-top:14px;
-    border-top:1px solid var(--hair);
+    padding:14px 16px;
+    background:var(--panel-2);
+    border-radius:var(--radius-sm);
   }
-  .hourly-row .k{ font-size:11.5px; color:var(--paper-dim); margin-bottom:3px; }
+  .hourly-row .k{ font-size:11.5px; color:var(--paper-dim); margin-bottom:4px; font-weight:600; }
   .hourly-row .v{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:19px;
-    font-weight:600;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:20px;
+    font-weight:700;
   }
 
   .min-payout{
-    margin-top:16px;
-    padding:12px 14px;
-    background:var(--panel-2);
-    border:1px solid var(--hair);
-    border-left:3px solid var(--accent);
-    border-radius:8px;
+    margin-top:14px;
+    padding:14px 16px;
+    background:var(--accent-dim);
+    border:1px solid rgba(91,79,232,0.30);
+    border-radius:var(--radius-sm);
     font-size:13px;
     line-height:1.45;
     color:var(--paper);
   }
-  .min-payout.muted{ border-left-color:var(--hair); color:var(--paper-dim); }
-  .min-payout b{ font-family:'IBM Plex Mono',monospace; font-weight:600; }
+  .min-payout.muted{ background:var(--panel-2); border-color:var(--hair); color:var(--paper-dim); }
+  .min-payout b{ font-weight:700; }
 
   /* ---------- Secondary gauge ---------- */
   .gauge-wrap{ margin-top:18px; }
   .gauge{
     position:relative;
-    height:6px;
-    border-radius:4px;
+    height:8px;
+    border-radius:var(--radius-pill);
     display:flex;
+    overflow:hidden;
     opacity:0.55;
     transition:opacity .2s ease;
   }
   .gauge.active{ opacity:1; }
   .gauge .seg{ height:100%; }
-  .gauge .seg.bad{ background:var(--bad); border-radius:4px 0 0 4px; }
+  .gauge .seg.bad{ background:var(--bad); }
   .gauge .seg.ok{ background:var(--ok); }
-  .gauge .seg.good{ background:var(--good); border-radius:0 4px 4px 0; }
+  .gauge .seg.good{ background:var(--good); }
   .gauge .needle{
     position:absolute;
     top:-3px;
-    width:3px;
-    height:12px;
+    width:4px;
+    height:14px;
     background:var(--paper);
     border-radius:2px;
     transform:translateX(-50%);
-    box-shadow:0 0 0 2px var(--ink);
+    box-shadow:0 0 0 2px var(--panel);
     transition:left .25s ease;
     display:none;
   }
@@ -158,9 +238,10 @@
     justify-content:space-between;
     font-size:10.5px;
     color:var(--paper-faint);
-    margin-top:6px;
+    margin-top:7px;
     text-transform:uppercase;
     letter-spacing:0.04em;
+    font-weight:700;
   }
 
   /* ---------- Input cards ---------- */
@@ -168,47 +249,48 @@
     background:var(--panel);
     border:1px solid var(--hair);
     border-radius:var(--radius);
-    padding:18px 18px 6px;
+    padding:20px 20px 8px;
     margin-bottom:14px;
   }
   .card .card-head{
     display:flex;
     align-items:baseline;
     justify-content:space-between;
-    margin-bottom:12px;
+    margin-bottom:14px;
   }
-  .card h2{ font-size:13px; font-weight:600; color:var(--paper-dim); margin:0; }
-  .card .saved-tag{ font-size:10.5px; color:var(--paper-faint); font-weight:400; }
+  .card h2{ font-size:15px; font-weight:800; color:var(--paper); margin:0; letter-spacing:-0.01em; }
+  .card .saved-tag{ font-size:10.5px; color:var(--paper-faint); font-weight:600; }
 
   .field{ margin-bottom:14px; }
-  .field label{ display:block; font-size:13.5px; color:var(--paper); margin-bottom:6px; }
-  .field .hint{ font-size:11.5px; color:var(--paper-faint); margin-top:5px; }
+  .field label{ display:block; font-size:13.5px; color:var(--paper-dim); font-weight:600; margin-bottom:7px; }
+  .field .hint{ font-size:11.5px; color:var(--paper-faint); margin-top:6px; }
   .field .input-wrap{
     display:flex;
     align-items:center;
     background:var(--panel-2);
-    border:1px solid var(--hair);
-    border-radius:8px;
-    padding:0 12px;
+    border:1.5px solid var(--panel-2);
+    border-radius:var(--radius-sm);
+    padding:0 14px;
     transition:border-color .15s ease;
   }
   .field .input-wrap:focus-within{ border-color:var(--accent); }
-  .field .prefix{ font-family:'IBM Plex Mono',monospace; color:var(--paper-dim); font-size:16px; padding-right:4px; }
+  .field .prefix{ color:var(--paper-dim); font-weight:700; font-size:16px; padding-right:4px; }
   .field input{
     flex:1;
     background:transparent;
     border:none;
     outline:none;
     color:var(--paper);
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:17px;
-    padding:13px 0;
+    font-weight:600;
+    padding:14px 0;
     min-width:0;
     -moz-appearance:textfield;
   }
   .field input::-webkit-outer-spin-button,
   .field input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
-  .field input::placeholder{ color:#5A5F66; }
+  .field input::placeholder{ color:#5A5A5A; font-weight:500; }
   .row2{ display:flex; gap:10px; }
   .row2 .field{ flex:1; }
 
@@ -216,13 +298,13 @@
   button.clear{
     flex:1;
     background:transparent;
-    border:1px solid var(--hair);
+    border:1.5px solid var(--hair);
     color:var(--paper-dim);
-    font-family:'Space Grotesk',sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:14.5px;
-    font-weight:500;
-    padding:13px 0;
-    border-radius:8px;
+    font-weight:700;
+    padding:14px 0;
+    border-radius:var(--radius-pill);
     cursor:pointer;
   }
   button.clear:active{ background:var(--panel-2); }
@@ -251,20 +333,20 @@
     justify-content:space-between;
     background:var(--panel);
     border:1px solid var(--hair);
-    border-radius:var(--radius);
-    padding:11px 14px;
+    border-radius:var(--radius-pill);
+    padding:12px 18px;
     margin-bottom:14px;
     font-size:12.5px;
   }
-  .account-bar .status{ color:var(--paper-dim); }
-  .account-bar .status b{ color:var(--paper); font-weight:600; }
+  .account-bar .status{ color:var(--paper-dim); font-weight:500; }
+  .account-bar .status b{ color:var(--paper); font-weight:700; }
   .account-bar button.link-btn{
     background:transparent;
     border:none;
     color:var(--accent);
-    font-family:'Space Grotesk',sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:12.5px;
-    font-weight:600;
+    font-weight:700;
     cursor:pointer;
     padding:4px 0;
   }
@@ -273,13 +355,13 @@
   .account-tabs button{
     flex:1;
     background:var(--panel-2);
-    border:1px solid var(--hair);
+    border:1.5px solid var(--panel-2);
     color:var(--paper-dim);
-    font-family:'Space Grotesk',sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:13px;
-    font-weight:600;
-    padding:9px 0;
-    border-radius:7px;
+    font-weight:700;
+    padding:10px 0;
+    border-radius:var(--radius-pill);
     cursor:pointer;
   }
   .account-tabs button.active{ color:var(--paper); border-color:var(--accent); }
@@ -287,26 +369,26 @@
   /* ---------- Tabs ---------- */
   .tabs{
     display:flex;
-    gap:8px;
-    margin-bottom:16px;
+    gap:4px;
+    margin-bottom:18px;
     background:var(--panel);
-    border:1px solid var(--hair);
-    border-radius:var(--radius);
-    padding:4px;
+    border-radius:var(--radius-pill);
+    padding:5px;
   }
   .tab-btn{
     flex:1;
     background:transparent;
     border:none;
     color:var(--paper-dim);
-    font-family:'Space Grotesk',sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:14px;
-    font-weight:600;
-    padding:10px 0;
-    border-radius:7px;
+    font-weight:700;
+    padding:11px 0;
+    border-radius:var(--radius-pill);
     cursor:pointer;
+    transition:background .15s ease, color .15s ease;
   }
-  .tab-btn.active{ background:var(--panel-2); color:var(--paper); }
+  .tab-btn.active{ background:var(--paper); color:var(--ink); }
   .view{ display:none; }
   .view.active{ display:block; }
 
@@ -314,34 +396,36 @@
   .actions.two{ gap:10px; }
   button.take-btn{
     flex:1;
-    background:rgba(95,167,119,0.14);
-    border:1px solid rgba(95,167,119,0.40);
-    color:var(--good);
-    font-family:'Space Grotesk',sans-serif;
-    font-size:14.5px;
-    font-weight:600;
-    padding:13px 0;
-    border-radius:8px;
+    background:var(--accent);
+    border:1px solid var(--accent);
+    color:#FFFFFF;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:15px;
+    font-weight:700;
+    padding:15px 0;
+    border-radius:var(--radius-pill);
     cursor:pointer;
+    box-shadow:0 4px 14px rgba(91,79,232,0.30);
   }
-  button.take-btn:active{ background:rgba(95,167,119,0.22); }
+  button.take-btn:active{ background:#E22B06; }
   button.decline-btn{
     flex:1;
-    background:rgba(217,100,90,0.14);
-    border:1px solid rgba(217,100,90,0.40);
-    color:var(--bad);
-    font-family:'Space Grotesk',sans-serif;
-    font-size:14.5px;
-    font-weight:600;
-    padding:13px 0;
-    border-radius:8px;
+    background:transparent;
+    border:1.5px solid var(--hair);
+    color:var(--paper-dim);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:15px;
+    font-weight:700;
+    padding:15px 0;
+    border-radius:var(--radius-pill);
     cursor:pointer;
   }
-  button.decline-btn:active{ background:rgba(217,100,90,0.22); }
+  button.decline-btn:active{ background:var(--panel-2); }
   .saved-flash{
     text-align:center;
     font-size:12px;
     color:var(--good);
+    font-weight:600;
     margin:-2px 0 12px;
     min-height:16px;
   }
@@ -351,46 +435,52 @@
     background:var(--panel);
     border:1px solid var(--hair);
     border-radius:var(--radius);
-    padding:16px 18px;
+    padding:18px 20px;
     margin-bottom:14px;
   }
   .tax-disclaimer{
-    background:rgba(224,169,74,0.10);
-    border:1px solid rgba(224,169,74,0.30);
+    background:rgba(255,185,61,0.10);
+    border:1px solid rgba(255,185,61,0.30);
     color:var(--ok);
     font-size:11.5px;
+    font-weight:600;
     text-align:center;
-    padding:9px 12px;
-    border-radius:8px;
+    padding:10px 12px;
+    border-radius:var(--radius-sm);
     margin-bottom:14px;
   }
-  .summary-card h2{ font-size:13px; font-weight:600; color:var(--paper-dim); margin:0 0 12px; }
+  .summary-card h2{ font-size:15px; font-weight:800; color:var(--paper); margin:0 0 14px; letter-spacing:-0.01em; }
   .summary-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:14px 10px;
+    gap:12px 10px;
+  }
+  .summary-grid .num-item{
+    background:var(--panel-2);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
   }
   .summary-grid .num-item .v{
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:18px;
-    font-weight:600;
+    font-weight:700;
   }
   .summary-card .card-head-row{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:12px;
+    margin-bottom:14px;
   }
   .summary-card .card-head-row h2{ margin:0; }
   .month-select{
     background:var(--panel-2);
-    border:1px solid var(--hair);
+    border:1.5px solid var(--panel-2);
     color:var(--paper);
-    font-family:'Space Grotesk',sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:12.5px;
-    font-weight:500;
-    padding:6px 8px;
-    border-radius:6px;
+    font-weight:700;
+    padding:7px 10px;
+    border-radius:var(--radius-pill);
     cursor:pointer;
   }
   .month-empty{ font-size:12.5px; color:var(--paper-faint); }
@@ -398,7 +488,7 @@
     background:var(--panel);
     border:1px solid var(--hair);
     border-radius:var(--radius);
-    padding:14px 16px;
+    padding:16px 18px;
     margin-bottom:10px;
   }
   .day-card .day-head{
@@ -409,8 +499,8 @@
     padding-bottom:8px;
     border-bottom:1px solid var(--hair);
   }
-  .day-card .day-date{ font-size:14px; font-weight:600; color:var(--paper); }
-  .day-card .day-total{ font-size:11.5px; color:var(--paper-dim); font-family:'IBM Plex Mono',monospace; }
+  .day-card .day-date{ font-size:14.5px; font-weight:700; color:var(--paper); }
+  .day-card .day-total{ font-size:11.5px; color:var(--paper-dim); font-weight:600; }
   .day-job-row{
     display:flex;
     justify-content:space-between;
@@ -418,38 +508,38 @@
     padding:5px 0;
     color:var(--paper-dim);
   }
-  .day-job-row .v{ font-family:'IBM Plex Mono',monospace; color:var(--paper); }
+  .day-job-row .v{ font-weight:700; color:var(--paper); }
   .day-job-row{ align-items:center; }
   .day-job-row-wrap{ padding:5px 0; }
   .day-job-row-wrap .day-job-row{ padding:0; }
   .row-meta{
     font-size:11.5px;
     color:var(--paper-faint);
-    font-family:'IBM Plex Mono',monospace;
+    font-weight:500;
     margin-top:2px;
     padding-left:2px;
   }
   .row-main{ display:flex; gap:14px; flex:1; }
   .row-actions{ display:flex; gap:6px; }
   .icon-btn{
-    background:transparent;
-    border:1px solid var(--hair);
+    background:var(--panel-2);
+    border:none;
     color:var(--paper-dim);
-    font-family:'Space Grotesk',sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:11px;
-    font-weight:500;
-    padding:5px 9px;
-    border-radius:6px;
+    font-weight:700;
+    padding:6px 11px;
+    border-radius:var(--radius-pill);
     cursor:pointer;
   }
-  .icon-btn:active{ background:var(--panel-2); }
-  .icon-btn.save-btn{ color:var(--good); border-color:rgba(95,167,119,0.40); }
-  .icon-btn.delete-btn{ color:var(--bad); border-color:rgba(217,100,90,0.40); }
+  .icon-btn:active{ background:var(--hair); }
+  .icon-btn.save-btn{ color:var(--good); }
+  .icon-btn.delete-btn{ color:var(--bad); }
   .day-job-row.editing{ align-items:center; gap:8px; padding:6px 0; }
   .day-job-row.editing .input-wrap{
     background:var(--panel-2);
-    border:1px solid var(--hair);
-    border-radius:6px;
+    border:none;
+    border-radius:8px;
     padding:0 8px;
   }
   .day-job-row.editing input{
@@ -457,21 +547,23 @@
     border:none;
     outline:none;
     color:var(--paper);
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:13px;
+    font-weight:600;
     padding:7px 0;
     width:70px;
   }
-  .day-job-row.editing .prefix{ font-family:'IBM Plex Mono',monospace; color:var(--paper-dim); font-size:12px; }
+  .day-job-row.editing .prefix{ color:var(--paper-dim); font-size:12px; font-weight:700; }
   .add-job-day-row{ margin-top:8px; text-align:right; }
   .add-job-day-btn{
     background:transparent;
-    border:1px dashed var(--hair);
+    border:1.5px dashed var(--hair);
     color:var(--paper-dim);
-    font-family:'Space Grotesk',sans-serif;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:11.5px;
-    padding:6px 10px;
-    border-radius:6px;
+    font-weight:700;
+    padding:7px 12px;
+    border-radius:var(--radius-pill);
     cursor:pointer;
   }
   .add-job-day-btn:active{ background:var(--panel-2); }
@@ -479,13 +571,13 @@
   .add-job-btn{
     width:100%;
     background:var(--panel);
-    border:1px solid var(--hair);
+    border:1.5px solid var(--hair);
     color:var(--paper);
-    font-family:'Space Grotesk',sans-serif;
-    font-size:14px;
-    font-weight:600;
-    padding:12px 0;
-    border-radius:var(--radius);
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:14.5px;
+    font-weight:700;
+    padding:14px 0;
+    border-radius:var(--radius-pill);
     cursor:pointer;
   }
   .add-job-btn:active{ background:var(--panel-2); }
@@ -493,13 +585,13 @@
     background:var(--panel);
     border:1px solid var(--hair);
     border-radius:var(--radius);
-    padding:16px 18px 4px;
+    padding:18px 20px 6px;
     margin-bottom:14px;
   }
   .inline-add-form{
     background:var(--panel-2);
-    border:1px solid var(--hair);
-    border-radius:8px;
+    border:none;
+    border-radius:var(--radius-sm);
     padding:12px 12px 2px;
     margin-top:10px;
   }
@@ -528,16 +620,16 @@
     padding:12px 12px 2px;
     border-top:1px solid var(--hair);
   }
-  .odo-block-label{ font-size:11.5px; font-weight:600; color:var(--paper-dim); margin-bottom:8px; }
+  .odo-block-label{ font-size:11.5px; font-weight:700; color:var(--paper-dim); margin-bottom:8px; }
   .odo-summary{
     display:flex;
     justify-content:space-between;
     align-items:center;
     font-size:13px;
-    font-family:'IBM Plex Mono',monospace;
+    font-weight:600;
     color:var(--paper);
   }
-  .odo-notes{ font-size:12px; color:var(--paper-dim); margin-top:4px; font-family:'Space Grotesk',sans-serif; }
+  .odo-notes{ font-size:12px; color:var(--paper-dim); margin-top:4px; font-family:'Plus Jakarta Sans',sans-serif; }
   .odo-tax-line{
     font-size:11.5px;
     color:var(--paper-dim);
@@ -545,35 +637,36 @@
     padding-top:8px;
     border-top:1px solid var(--hair);
   }
-  .odo-tax-line b{ color:var(--paper); font-weight:600; }
+  .odo-tax-line b{ color:var(--paper); font-weight:700; }
   .odo-source{ color:var(--paper-faint); }
 
   /* ---------- Screenshot analyzer ---------- */
   .scan-bar{ margin-bottom:14px; }
   .scan-btn{
     width:100%;
-    background:rgba(224,169,74,0.10);
-    border:1px solid rgba(224,169,74,0.35);
-    color:var(--accent);
-    font-family:'Space Grotesk',sans-serif;
+    background:var(--accent);
+    border:1px solid var(--accent);
+    color:#FFFFFF;
+    font-family:'Plus Jakarta Sans',sans-serif;
     font-size:15px;
-    font-weight:600;
-    padding:14px 0;
-    border-radius:var(--radius);
+    font-weight:700;
+    padding:16px 0;
+    border-radius:var(--radius-pill);
     cursor:pointer;
     display:flex;
     align-items:center;
     justify-content:center;
     gap:8px;
+    box-shadow:0 4px 14px rgba(91,79,232,0.30);
   }
-  .scan-btn:active{ background:rgba(224,169,74,0.18); }
+  .scan-btn:active{ background:#E22B06; }
   .scan-btn .ico{ font-size:17px; }
 
   .modal-overlay{
     display:none;
     position:fixed;
     inset:0;
-    background:rgba(10,11,13,0.72);
+    background:rgba(0,0,0,0.75);
     z-index:50;
     align-items:flex-end;
     justify-content:center;
@@ -584,15 +677,16 @@
     max-width:430px;
     background:var(--panel);
     border:1px solid var(--hair);
-    border-radius:16px 16px 0 0;
-    padding:20px 18px 24px;
+    border-radius:24px 24px 0 0;
+    padding:22px 20px 26px;
     max-height:88vh;
     overflow-y:auto;
   }
   .modal-sheet h3{
-    font-size:16px;
-    font-weight:700;
+    font-size:18px;
+    font-weight:800;
     margin:0 0 4px;
+    letter-spacing:-0.01em;
   }
   .modal-sub{
     font-size:12.5px;
@@ -627,13 +721,13 @@
     font-weight:700;
     letter-spacing:0.03em;
     text-transform:uppercase;
-    padding:4px 9px;
-    border-radius:20px;
+    padding:5px 10px;
+    border-radius:var(--radius-pill);
     margin-bottom:14px;
   }
-  .status-pill.success{ background:rgba(95,167,119,0.16); color:var(--good); }
-  .status-pill.review{ background:rgba(224,169,74,0.16); color:var(--ok); }
-  .status-pill.failed{ background:rgba(217,100,90,0.16); color:var(--bad); }
+  .status-pill.success{ background:rgba(61,179,92,0.16); color:var(--good); }
+  .status-pill.review{ background:rgba(255,185,61,0.16); color:var(--ok); }
+  .status-pill.failed{ background:rgba(255,82,82,0.16); color:var(--bad); }
 
   .modal-actions{ display:flex; gap:10px; margin-top:18px; }
   .modal-actions button{ flex:1; }
@@ -656,7 +750,7 @@
     border:1px solid var(--hair);
     border-radius:8px;
     padding:10px 12px;
-    font-family:'IBM Plex Mono',monospace;
+    font-family:'Plus Jakarta Sans',monospace;
     font-size:11px;
     color:var(--paper-dim);
     white-space:pre-wrap;
@@ -665,11 +759,54 @@
     overflow-y:auto;
   }
   .debug-panel.show{ display:block; }
+
+  /* ---------- SEO / informational content ---------- */
+  .intro-text{
+    font-size:13.5px;
+    color:var(--paper-dim);
+    font-weight:500;
+    line-height:1.5;
+    margin:-10px 4px 18px;
+  }
+  .info-section{
+    margin:32px 0 0;
+    padding:0 2px;
+  }
+  .info-section h2{
+    font-size:17px;
+    font-weight:800;
+    color:var(--paper);
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  .info-section > p{
+    font-size:13.5px;
+    color:var(--paper-dim);
+    line-height:1.6;
+    margin:0 0 16px;
+  }
+  .faq-item{
+    border-top:1px solid var(--hair);
+    padding:14px 0;
+  }
+  .faq-item:first-of-type{ border-top:none; padding-top:0; }
+  .faq-item h3{
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--paper);
+    margin:0 0 6px;
+  }
+  .faq-item p{
+    font-size:13px;
+    color:var(--paper-dim);
+    line-height:1.55;
+    margin:0;
+  }
 </style>
 </head>
 <body>
 <noscript>
-  <div style="max-width:430px;margin:14px auto;background:#3a2a1f;border:1px solid #E0A94A;color:#F1EFE9;padding:14px 16px;border-radius:10px;font-family:sans-serif;font-size:14px;line-height:1.5;">
+  <div style="max-width:430px;margin:14px auto;background:#1A1730;border:1px solid #5B4FE8;color:#FFFFFF;padding:14px 16px;border-radius:16px;font-family:sans-serif;font-size:14px;line-height:1.5;">
     <strong>This calculator needs JavaScript to work.</strong><br>
     If you opened this by tapping the file directly, you're likely in a static preview (Quick Look) that doesn't run scripts.
     Tap the Share icon and choose <strong>"Open in Safari"</strong> (or your browser) to use the working version.
@@ -681,6 +818,8 @@
     <h1>Gig Check</h1>
     <span class="tag">should I take it?</span>
   </header>
+
+  <p class="intro-text">Free profit calculator for DoorDash drivers. Enter or screenshot an offer to instantly see profit after gas, profit per mile, and estimated hourly pay.</p>
 
   <div class="account-bar">
     <div class="status" id="accountStatus">Not signed in <div class="account-sync-note">Data is only on this device</div></div>
@@ -962,6 +1101,29 @@
   </div>
   <!-- ==================== END HISTORY VIEW ==================== -->
 
+  <!-- ==================== HOW IT WORKS / FAQ (static content, kept inside .app so it stacks normally instead of sitting beside the app) ==================== -->
+  <section class="info-section" aria-labelledby="howItWorksHeading">
+    <h2 id="howItWorksHeading">How Gig Check Works</h2>
+    <p>Gig Check helps DoorDash drivers decide whether an offer is worth accepting. Enter a job's payout and total miles by hand, or tap "Check This Order" and upload a screenshot of the offer — Gig Check reads the payout and mileage from the image automatically. Using your vehicle's MPG and current gas price, it calculates your estimated gas cost, profit after gas, profit per mile, and estimated hourly rate, then shows a Skip, Maybe, or Take recommendation based on the minimum profit per mile you set. Jobs you take are logged in your History tab, which tracks fuel spend, profit after fuel, and an estimated tax deduction using the IRS standard mileage rate — exportable as a CSV mileage log at tax time.</p>
+  </section>
+
+  <section class="info-section" aria-labelledby="faqHeading">
+    <h2 id="faqHeading">Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <h3>How do I know if a DoorDash order is worth taking?</h3>
+      <p>Enter the payout and total miles for the offer into Gig Check, or upload a screenshot of the offer and let it read the numbers automatically. Gig Check calculates your estimated gas cost, profit after gas, profit per mile, and estimated hourly rate, then gives you a Skip, Maybe, or Take recommendation based on your own target profit per mile.</p>
+    </div>
+    <div class="faq-item">
+      <h3>What counts as a good profit per mile for gig delivery?</h3>
+      <p>It depends on your vehicle and the cost of gas, which is why Gig Check lets you set your own minimum profit-per-mile target rather than using a fixed number. Many drivers use somewhere between $1 and $2 profit per mile after gas as a starting point, then adjust based on their own vehicle's fuel efficiency and expenses.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Does Gig Check work with gig apps other than DoorDash?</h3>
+      <p>Right now, Gig Check's screenshot scanner is built and tested specifically for DoorDash offers. You can still use the manual payout/miles entry fields for any gig platform, and screenshot support for other apps is planned.</p>
+    </div>
+  </section>
+
 </div>
 
 <!-- ==================== SCAN MODAL ==================== -->
@@ -1007,17 +1169,30 @@
     }
   } catch (e) { console.warn('Firebase not configured yet:', e); }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
-  // Fallback: if jsDelivr didn't load Tesseract (network policy, ad blocker, etc.),
-  // try unpkg as a second source before giving up.
-  window.addEventListener('load', () => {
-    if (typeof Tesseract === 'undefined'){
+  // Tesseract.js loads lazily, only when someone actually uses the scan
+  // feature, instead of on every page load. This keeps first-load time
+  // fast for the majority of visits that never touch the scanner.
+  let tesseractLoadPromise = null;
+  function ensureTesseractLoaded(){
+    if (typeof Tesseract !== 'undefined') return Promise.resolve();
+    if (tesseractLoadPromise) return tesseractLoadPromise;
+    tesseractLoadPromise = new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+      s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => {
+        // primary CDN failed (network policy, ad blocker, etc.) — try unpkg as a fallback
+        const s2 = document.createElement('script');
+        s2.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+        s2.onload = () => resolve();
+        s2.onerror = () => reject(new Error('Could not load the scanner. Check your connection and try again.'));
+        document.head.appendChild(s2);
+      };
       document.head.appendChild(s);
-    }
-  });
+    });
+    return tesseractLoadPromise;
+  }
 </script>
 <script>
 (function(){
@@ -2036,6 +2211,7 @@
   let scanWorker = null;
   async function getScanWorker(){
     if (scanWorker) return scanWorker;
+    await ensureTesseractLoaded();
     scanWorker = await Tesseract.createWorker('eng', 1, {
       logger: m => {
         if (m.status === 'recognizing text' && typeof m.progress === 'number'){
