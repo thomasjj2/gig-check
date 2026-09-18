@@ -292,7 +292,7 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
     transition:border-color .15s ease;
   }
   .field .input-wrap:focus-within{ border-color:var(--accent); }
-  .field .prefix{ color:var(--paper-dim); font-weight:700; font-size:16px; padding-right:4px; }
+  .field .prefix{ color:var(--paper-dim); font-weight:700; font-size:16px; padding-right:4px; flex-shrink:0; white-space:nowrap; }
   .field input{
     flex:1;
     background:transparent;
@@ -310,7 +310,10 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
   .field input::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   .field input::placeholder{ color:#5A5A5A; font-weight:500; }
   .row2{ display:flex; gap:10px; }
-  .row2 .field{ flex:1; }
+  .row2 .field{ flex:1; min-width:0; }
+  @media (max-width:360px){
+    .row2{ flex-direction:column; }
+  }
 
   .actions{ display:flex; gap:10px; margin-bottom:4px; }
   button.clear{
