@@ -750,6 +750,33 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
   .modal-actions{ display:flex; gap:10px; margin-top:18px; }
   .modal-actions button{ flex:1; }
 
+  .share-field{ margin-top:14px; }
+  .share-label{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    cursor:pointer;
+    font-size:13.5px;
+    color:var(--paper);
+    line-height:1.4;
+  }
+  .share-label input[type="checkbox"]{
+    margin-top:2px;
+    width:18px;
+    height:18px;
+    flex-shrink:0;
+    accent-color:var(--accent);
+  }
+  .local-stat-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 0;
+    border-bottom:1px solid var(--hair);
+  }
+  .local-stat-row:last-child{ border-bottom:none; }
+  .local-stat-row .k{ font-size:13.5px; color:var(--paper-dim); }
+  .local-stat-row .v{ font-size:15px; font-weight:700; }
   .debug-toggle{
     background:transparent;
     border:none;
@@ -847,6 +874,7 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
   <div class="tabs">
     <button class="tab-btn active" id="tabCalcBtn">Calculator</button>
     <button class="tab-btn" id="tabHistoryBtn">History</button>
+    <button class="tab-btn" id="tabLocalBtn">Local</button>
   </div>
 
   <!-- ==================== CALCULATOR VIEW ==================== -->
@@ -988,6 +1016,37 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
     </div>
   </div>
 
+  <!-- Community data -->
+  <div class="card">
+    <div class="card-head">
+      <h2>Your area</h2>
+      <span class="saved-tag">saved on this device</span>
+    </div>
+
+    <div class="field">
+      <label for="userCity">Your city and state</label>
+      <div class="input-wrap">
+        <input id="userCity" type="text" list="cityListOptions" placeholder="e.g. Your City, ST" autocapitalize="words" autocomplete="off">
+      </div>
+      <datalist id="cityListOptions">
+        <option value="Warner Robins, GA">
+        <option value="Macon, GA">
+        <option value="Perry, GA">
+        <option value="Byron, GA">
+        <option value="Centerville, GA">
+      </datalist>
+      <div class="hint">Enter as City, ST (e.g. Warner Robins, GA) so your data groups correctly with other drivers in your area. Used to show local offer averages in the Local tab.</div>
+    </div>
+
+    <div class="field share-field">
+      <label class="share-label">
+        <input id="shareDataToggle" type="checkbox" checked>
+        <span>Share anonymized offer data to help build local averages for your city</span>
+      </label>
+      <div class="hint">We only share your city, payout-per-mile, and Take/Maybe/Skip result &mdash; never your name, email, or exact location. Turn this off anytime.</div>
+    </div>
+  </div>
+
   <footer>
     Your vehicle and target stay saved on this device &mdash; only this job's numbers reset.
     <div class="disclaimer">Fuel estimate only. Does not include depreciation, maintenance, insurance, taxes, or other vehicle expenses.</div>
@@ -1119,6 +1178,25 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
   </div>
   <!-- ==================== END HISTORY VIEW ==================== -->
 
+  <!-- ==================== LOCAL INSIGHTS VIEW ==================== -->
+  <div class="view" id="viewLocal">
+
+    <div class="card">
+      <div class="card-head">
+        <h2 id="localCityHeading">Local Insights</h2>
+      </div>
+      <div id="localBody">
+        <div class="hint">Set your city on the Calculator tab to see local offer averages.</div>
+      </div>
+    </div>
+
+    <footer>
+      Local averages come from anonymized offers shared by other Gig Check users in your city over the last 14 days. Numbers only appear once enough recent data has been shared for a city, and are estimates, not a guarantee of what you'll be offered.
+    </footer>
+
+  </div>
+  <!-- ==================== END LOCAL INSIGHTS VIEW ==================== -->
+
   <!-- ==================== HOW IT WORKS / FAQ (static content, kept inside .app so it stacks normally instead of sitting beside the app) ==================== -->
   <section class="info-section" aria-labelledby="howItWorksHeading">
     <h2 id="howItWorksHeading">How Gig Check Works</h2>
@@ -1236,8 +1314,10 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
     minPayoutBox: $('minPayoutBox'), minPayoutText: $('minPayoutText'),
     gauge: $('gauge'), segBad: $('segBad'), segOk: $('segOk'), segGood: $('segGood'), needle: $('needle'),
     takenBtn: $('takenBtn'), declineBtn: $('declineBtn'), savedFlash: $('savedFlash'),
-    tabCalcBtn: $('tabCalcBtn'), tabHistoryBtn: $('tabHistoryBtn'),
-    viewCalc: $('viewCalc'), viewHistory: $('viewHistory'),
+    tabCalcBtn: $('tabCalcBtn'), tabHistoryBtn: $('tabHistoryBtn'), tabLocalBtn: $('tabLocalBtn'),
+    viewCalc: $('viewCalc'), viewHistory: $('viewHistory'), viewLocal: $('viewLocal'),
+    userCity: $('userCity'), shareDataToggle: $('shareDataToggle'),
+    localCityHeading: $('localCityHeading'), localBody: $('localBody'),
     sumPayout: $('sumPayout'), sumMiles: $('sumMiles'), sumJobs: $('sumJobs'), sumDeduction: $('sumDeduction'),
     sumBusinessMiles: $('sumBusinessMiles'), csvExportBtn: $('csvExportBtn'),
     monthSelect: $('monthSelect'), monPayout: $('monPayout'), monFuel: $('monFuel'), monProfit: $('monProfit'),
@@ -1314,6 +1394,9 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
         if (data.mpg !== undefined && data.mpg !== null) els.mpg.value = data.mpg;
         if (data.gasPrice !== undefined && data.gasPrice !== null) els.gasPrice.value = data.gasPrice;
         if (data.target !== undefined && data.target !== null) els.target.value = data.target;
+        if (data.city !== undefined && data.city !== null) els.userCity.value = data.city;
+        // default to shared ON unless the user has explicitly turned it off before
+        els.shareDataToggle.checked = data.shareData !== false;
       }
     } catch (e) { /* ignore corrupt/blocked storage */ }
   }
@@ -1323,7 +1406,9 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
       const data = {
         mpg: hasVal(els.mpg) ? els.mpg.value : '',
         gasPrice: hasVal(els.gasPrice) ? els.gasPrice.value : '',
-        target: hasVal(els.target) ? els.target.value : ''
+        target: hasVal(els.target) ? els.target.value : '',
+        city: hasVal(els.userCity) ? els.userCity.value : '',
+        shareData: !!els.shareDataToggle.checked
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       syncToCloud();
@@ -1900,11 +1985,16 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
   // ---------- tabs ----------
   function showTab(tab){
     const isCalc = tab === 'calc';
+    const isHistory = tab === 'history';
+    const isLocal = tab === 'local';
     els.viewCalc.classList.toggle('active', isCalc);
-    els.viewHistory.classList.toggle('active', !isCalc);
+    els.viewHistory.classList.toggle('active', isHistory);
+    els.viewLocal.classList.toggle('active', isLocal);
     els.tabCalcBtn.classList.toggle('active', isCalc);
-    els.tabHistoryBtn.classList.toggle('active', !isCalc);
-    if (!isCalc) renderHistory();
+    els.tabHistoryBtn.classList.toggle('active', isHistory);
+    els.tabLocalBtn.classList.toggle('active', isLocal);
+    if (isHistory) renderHistory();
+    if (isLocal) renderLocalInsights();
   }
 
   // ---------- core calculation ----------
@@ -2036,6 +2126,11 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
     el.addEventListener('input', () => { recalc(); saveSettings(); });
   });
 
+  // city + share toggle: persist only (no effect on the calculator itself)
+  els.userCity.addEventListener('input', () => { saveSettings(); });
+  els.userCity.addEventListener('blur', () => { renderLocalInsights(); });
+  els.shareDataToggle.addEventListener('change', () => { saveSettings(); });
+
   function resetJobFields(){
     els.payout.value = '';
     els.miles.value = '';
@@ -2052,6 +2147,7 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
       els.savedFlash.style.color = 'var(--bad)';
       return;
     }
+    submitOfferSample(payout, miles);
     recordJobTaken(payout, miles, parseNum(els.gasPrice), parseNum(els.mpg));
     els.savedFlash.textContent = 'Saved to history \u2014 ' + fmtMoney(payout) + ', ' + miles.toFixed(1) + ' mi.';
     els.savedFlash.style.color = 'var(--good)';
@@ -2059,12 +2155,132 @@ src="https://www.facebook.com/tr?id=1256755967528123&ev=PageView&noscript=1"
   });
 
   els.declineBtn.addEventListener('click', () => {
+    const payout = parseNum(els.payout);
+    const miles = parseNum(els.miles);
+    submitOfferSample(payout, miles);
     els.savedFlash.textContent = '';
     resetJobFields();
   });
 
+  // ==================== COMMUNITY DATA (crowdsourced local averages) ====================
+  // Anonymized only: city, profit-per-mile, and the app's Take/Maybe/Skip result.
+  // No name, email, uid, or exact location is ever included.
+
+  function decisionKeyFromBanner(){
+    if (els.banner.classList.contains('take')) return 'take';
+    if (els.banner.classList.contains('maybe')) return 'maybe';
+    if (els.banner.classList.contains('skip')) return 'skip';
+    return null; // pending / setup — not a real evaluated offer
+  }
+
+  function cityKeyFor(rawCity){
+    return String(rawCity || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+
+  function submitOfferSample(payout, miles){
+    if (!firebaseReady) return;
+    if (!els.shareDataToggle.checked) return;
+    const rawCity = els.userCity.value.trim();
+    if (!rawCity) return; // no city set — nothing useful to tag it with
+
+    const decision = decisionKeyFromBanner();
+    if (!decision) return; // vehicle/target not set up yet, or fields incomplete
+
+    const mpg = parseNum(els.mpg);
+    const gasPrice = parseNum(els.gasPrice);
+    if (isNaN(payout) || isNaN(miles) || miles <= 0 || isNaN(mpg) || mpg <= 0 || isNaN(gasPrice) || gasPrice < 0) return;
+
+    const gasCost = (miles / mpg) * gasPrice;
+    const profitPerMile = (payout - gasCost) / miles;
+
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun .. 6=Sat
+    const hourBlock = now.getHours();
+
+    firebase.firestore().collection('offerSamples').add({
+      cityKey: cityKeyFor(rawCity),
+      cityLabel: rawCity,
+      profitPerMile: Math.round(profitPerMile * 100) / 100,
+      decision: decision,
+      dayOfWeek: dayOfWeek,
+      hourBlock: hourBlock,
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(e => console.warn('Community data submit failed:', e));
+  }
+
+  const LOCAL_MIN_SAMPLES = 15;
+  const LOCAL_WINDOW_DAYS = 14;
+  const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  function renderLocalInsights(){
+    const rawCity = els.userCity.value.trim();
+    els.localCityHeading.textContent = rawCity ? 'Local Insights \u2014 ' + rawCity : 'Local Insights';
+
+    if (!rawCity){
+      els.localBody.innerHTML = '<div class="hint">Set your city on the Calculator tab to see local offer averages.</div>';
+      return;
+    }
+    if (!firebaseReady){
+      els.localBody.innerHTML = '<div class="hint">Local averages aren\u2019t available yet.</div>';
+      return;
+    }
+
+    els.localBody.innerHTML = '<div class="hint">Loading local data\u2026</div>';
+
+    const cutoff = new Date(Date.now() - LOCAL_WINDOW_DAYS * 24 * 60 * 60 * 1000);
+    const cutoffTs = firebase.firestore.Timestamp.fromDate(cutoff);
+
+    firebase.firestore().collection('offerSamples')
+      .where('cityKey', '==', cityKeyFor(rawCity))
+      .where('submittedAt', '>=', cutoffTs)
+      .orderBy('submittedAt', 'desc')
+      .limit(300)
+      .get()
+      .then(snap => {
+        const samples = [];
+        snap.forEach(doc => samples.push(doc.data()));
+
+        if (samples.length < LOCAL_MIN_SAMPLES){
+          els.localBody.innerHTML =
+            '<div class="hint">Not enough shared data in the last ' + LOCAL_WINDOW_DAYS + ' days for ' + rawCity + ' (' + samples.length + ' of ' + LOCAL_MIN_SAMPLES + ' needed). Check back soon as more drivers use Gig Check here.</div>';
+          return;
+        }
+
+        let sum = 0, takeCt = 0, maybeCt = 0, skipCt = 0;
+        const dayTotals = {}; // dayOfWeek -> {sum, count}
+        samples.forEach(s => {
+          sum += s.profitPerMile;
+          if (s.decision === 'take') takeCt++;
+          else if (s.decision === 'maybe') maybeCt++;
+          else if (s.decision === 'skip') skipCt++;
+          if (!dayTotals[s.dayOfWeek]) dayTotals[s.dayOfWeek] = {sum:0, count:0};
+          dayTotals[s.dayOfWeek].sum += s.profitPerMile;
+          dayTotals[s.dayOfWeek].count += 1;
+        });
+        const avg = sum / samples.length;
+        const takePct = Math.round((takeCt / samples.length) * 100);
+
+        let bestDay = null, bestAvg = -Infinity;
+        Object.keys(dayTotals).forEach(d => {
+          const dAvg = dayTotals[d].sum / dayTotals[d].count;
+          if (dAvg > bestAvg){ bestAvg = dAvg; bestDay = d; }
+        });
+
+        els.localBody.innerHTML =
+          '<div class="local-stat-row"><span class="k">Avg. profit / mile</span><span class="v">' + fmtRate(avg) + '</span></div>' +
+          '<div class="local-stat-row"><span class="k">Offers rated Take</span><span class="v">' + takePct + '%</span></div>' +
+          (bestDay !== null ? '<div class="local-stat-row"><span class="k">Best day (shared data)</span><span class="v">' + DAY_NAMES[bestDay] + '</span></div>' : '') +
+          '<div class="local-stat-row"><span class="k">Based on</span><span class="v">' + samples.length + ' offers, last ' + LOCAL_WINDOW_DAYS + ' days</span></div>';
+      })
+      .catch(e => {
+        console.warn('Local insights query failed:', e);
+        els.localBody.innerHTML = '<div class="hint">Couldn\u2019t load local data right now. Try again later.</div>';
+      });
+  }
+
   els.tabCalcBtn.addEventListener('click', () => showTab('calc'));
   els.tabHistoryBtn.addEventListener('click', () => showTab('history'));
+  els.tabLocalBtn.addEventListener('click', () => showTab('local'));
 
   // ==================== SCREENSHOT ANALYZER (on-device OCR) ====================
   // Uses Tesseract.js (WebAssembly OCR that runs entirely in the browser — no
